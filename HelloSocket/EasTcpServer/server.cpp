@@ -7,6 +7,43 @@
 using namespace std;
 #pragma comment(lib,"ws2_32.lib") //windows socket2 32的lib库
 
+//一定要保证服务端和客户端（操作系统）中 数据结构字节顺序和大小保证一致 
+struct DataPackage
+{
+	int age;
+	char name[32];
+};
+
+enum CMD
+{
+	CMD_LOGIN,
+	CMD_LOGINOUT,
+	CMD_ERROR
+};
+//消息头
+struct DataHeader
+{
+	short dataLength;    //数据长度 32767字节
+	short cmd;
+};
+
+struct Login
+{
+	char userName[32];
+	char Password[32];
+};
+struct Logout
+{
+	char userName[32];
+};
+struct LoginResult
+{
+	int result;			
+};
+struct LogoutResult
+{
+	int result;
+};
 int main()
 {
 	//启动 windows socket 2.x 环境
@@ -62,37 +99,75 @@ int main()
 	{
 		cout << "新Client加入："<< "socket = "<< _clientSock <<" IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
 	}
+
+
 	char _recvBuf[128] = {};
 	while (true)
 	{
-		//5 接受客户端请求数据
-		int nlen = recv(_clientSock, _recvBuf, 128, 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
+		DataHeader header = {};
+		//5 首先接收数据包头
+		int nlen = recv(_clientSock, (char*)&header, sizeof(header), 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
 		if (nlen <= 0)
 		{
 			//客户端退出
 			cout << "客户端已退出，任务结束" << endl;
 			break;
 		}
-		cout << "收到命令：" << _recvBuf << endl;
+		cout << "收到命令：" << header.cmd << "数据长度" <<header.dataLength<< endl;
+
+		switch (header.cmd)
+		{
+			case CMD_LOGIN:
+			{
+				Login _login = {};
+				recv(_clientSock, (char*)&_login, sizeof(Login),0);
+				//忽略判断用户名密码是否正确的过程
+				LoginResult _loginres = { 1 };
+				send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
+				send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
+				cout << "登陆用户: " << _login.userName << endl;
+			}break;
+			case CMD_LOGINOUT:
+			{
+				Logout _logout = {};
+				recv(_clientSock, (char*)&_logout, sizeof(Logout), 0);
+				LogoutResult _logoutres = { 1 };
+				send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
+				send(_clientSock, (char*)&_logoutres, sizeof(LogoutResult), 0);
+				cout << "登出用户: " << _logout.userName << endl;
+			}break;
+			default:
+				header.cmd = CMD_ERROR;
+				header.dataLength = 0;
+				send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
+				break;
+		}
+
+
 		//6 处理请求  这里只是简单的字符串判断
-		if (0 == strcmp(_recvBuf, "getName"))
-		{
-			//	7. 向客户端发送一条数据 send
-			char msgBuf[] = "Evila";
-			send(_clientSock, msgBuf, strlen(msgBuf) + 1, 0); //+1是为了把\0算进去
-		}
-		else if (0 == strcmp(_recvBuf, "getAge"))
-		{
-			//	7. 向客户端发送一条数据 send
-			char msgBuf[] = "80";
-			send(_clientSock, msgBuf, strlen(msgBuf) + 1, 0); //+1是为了把\0算进去
-		}
-		else
-		{
-			//	7. 向客户端发送一条数据 send
-			char msgBuf[] = "Hello, I'm Server";
-			send(_clientSock, msgBuf, strlen(msgBuf) + 1, 0); //+1是为了把\0算进去
-		}
+		//if (0 == strcmp(_recvBuf, "getName"))
+		//{
+		//	//	7. 向客户端发送一条数据 send
+		//	char msgBuf[] = "Evila";
+		//	send(_clientSock, msgBuf, strlen(msgBuf) + 1, 0); //+1是为了把\0算进去
+		//}
+		//else if (0 == strcmp(_recvBuf, "getAge"))
+		//{
+		//	//	7. 向客户端发送一条数据 send
+		//	char msgBuf[] = "80";
+		//	send(_clientSock, msgBuf, strlen(msgBuf) + 1, 0); //+1是为了把\0算进去
+		//}
+		//if (0 == strcmp(_recvBuf, "getInfo"))
+		//{
+		//	DataPackage dp = {24,"Evila"};
+		//	send(_clientSock, (const char*)&dp, sizeof(DataPackage), 0); 
+		//}
+		//else
+		//{
+		//	//	7. 向客户端发送一条数据 send
+		//	char msgBuf[] = "ERROR: 输入请求无法解析...";
+		//	send(_clientSock, msgBuf, strlen(msgBuf) + 1, 0); //+1是为了把\0算进去
+		//}
 	}
 	//	8. 关闭socket
 	closesocket(_sock);
