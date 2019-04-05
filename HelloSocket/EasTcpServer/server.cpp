@@ -60,7 +60,7 @@ int main()
 	}
 	else
 	{
-		cout << "新Client加入："<< "socket = "<< _clientSock <<"IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
+		cout << "新Client加入："<< "socket = "<< _clientSock <<" IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
 	}
 	char _recvBuf[128] = {};
 	while (true)
