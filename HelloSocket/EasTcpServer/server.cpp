@@ -4,6 +4,7 @@
 #include<WinSock2.h>
 #include<iostream>
 #include<string>
+#include<vector>
 using namespace std;
 #pragma comment(lib,"ws2_32.lib") //windows socket2 32的lib库
 
@@ -69,6 +70,50 @@ struct LogoutResult :public DataHeader
 	int result;
 };
 
+vector<SOCKET> g_clinets;
+
+int processor(SOCKET _clientSock)
+{
+	char *szRecv = new char[1024];
+	//5 首先接收数据包头
+	int nlen = recv(_clientSock, szRecv, sizeof(DataHeader), 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
+	if (nlen <= 0)
+	{
+		//客户端退出
+		cout << "客户端已退出，任务结束" << endl;
+		return -1;
+	}
+	DataHeader* header = (DataHeader*)szRecv;
+	switch (header->cmd)
+	{
+	case CMD_LOGIN:
+	{
+		Login* _login;
+		recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
+		_login = (Login*)szRecv;
+		cout << "收到命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength << " UserName = " << _login->userName << " Password = " << _login->Password << endl;
+		//忽略了判断用户名密码是否正确的过程
+		LoginResult _loginres;
+		send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
+	}break;
+	case CMD_LOGINOUT:
+	{
+		Logout *_logout;
+		recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
+		_logout = (Logout*)szRecv;
+		cout << "收到命令：CMD_LOGOUT" << " 数据长度 = " << header->dataLength << " UserName = " << _logout->userName << endl;
+		LogoutResult _logoutres;
+		send(_clientSock, (char*)&_logoutres, sizeof(LogoutResult), 0);
+	}break;
+	default:
+	{
+		header->cmd = CMD_ERROR;
+		header->dataLength = 0;
+		send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
+	}
+	break;
+	}
+}
 
 int main()
 {
@@ -107,68 +152,69 @@ int main()
 	{
 		cout << "SUCCESS: 监听端口成功..." << endl;
 	}
-
-	//	4. 等待接受客户端连接 accept
-
-	sockaddr_in _clientAddr = {};  
-	int cliendAddrLen = sizeof(_clientAddr);
-	SOCKET _clientSock = INVALID_SOCKET; // 初始化无效的socket 用来存储接入的客户端
-
-	_clientSock = accept(_sock, (sockaddr*)&_clientAddr, &cliendAddrLen);//当客户端接入时 会得到连入客户端的socket地址和长度
-	if (INVALID_SOCKET == _clientSock) //接受到无效接入
-	{
-		cout << "ERROR: 接受到无效客户端SOCKET..." << endl;
-	}
-	else
-	{
-		cout << "新Client加入："<< "socket = "<< _clientSock <<" IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
-	}
-
-
 	char _recvBuf[128] = {};
 	while (true)
 	{
+		fd_set fdRead;
+		fd_set fdWrite;
+		fd_set fdExpect;
 
-		char *szRecv = new char[1024];
+		FD_ZERO(&fdRead);		//清空fd集合的数据
+		FD_ZERO(&fdWrite);
+		FD_ZERO(&fdExpect);
+		//这个宏的功能是 将服务端的_sock 放到fdRead这个集合中 
+		//当socket在listen状态，如果已经接收一个连接请求，这个socket会被标记为可读，例如一个accept会确保不会阻塞的完成
+		//对于其他的socket，可读性意味着队列中的数据适合读，当调用recv后不会阻塞。
+		FD_SET(_sock, &fdRead);  //将服务端的socket放入可读列表，确保accept不阻塞
+		FD_SET(_sock, &fdWrite);
+		FD_SET(_sock, &fdExpect);
 
-		//5 首先接收数据包头
-		int nlen = recv(_clientSock, szRecv, sizeof(DataHeader), 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
-		if (nlen <= 0)
+		for (size_t n = 0; n < g_clinets.size(); n++)
 		{
-			//客户端退出
-			cout << "客户端已退出，任务结束" << endl;
+			FD_SET(g_clinets[n], &fdRead);		//所有连入的客户端放入可读列表 保证recv不阻塞
+		}
+
+		//nfds第一个参数 是一个整数值 是指fd_set集合中所有socket值的范围 不是数量 
+		int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExpect, NULL);
+		if (ret < 0)
+		{
+			cout << "select任务结束" << endl;
 			break;
 		}
-		DataHeader* header = (DataHeader*)szRecv;
-		switch (header->cmd)
+		if (FD_ISSET(_sock, &fdRead))	//判断_sock是否在fdRead中， 如果在 表明有客户端连接请求
 		{
-			case CMD_LOGIN:
+			FD_CLR(_sock, &fdRead); 
+			//	4. 等待接受客户端连接 accept
+			sockaddr_in _clientAddr = {};
+			int cliendAddrLen = sizeof(_clientAddr);
+			SOCKET _clientSock = INVALID_SOCKET; // 初始化无效的socket 用来存储接入的客户端
+
+			_clientSock = accept(_sock, (sockaddr*)&_clientAddr, &cliendAddrLen);//当客户端接入时 会得到连入客户端的socket地址和长度
+			if (INVALID_SOCKET == _clientSock) //接受到无效接入
 			{
-				Login* _login;
-				recv(_clientSock, szRecv + sizeof(DataHeader),header->dataLength - sizeof(DataHeader),0);
-				_login = (Login*)szRecv;
-				cout << "收到命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength<<" UserName = "<< _login->userName<<" Password = "<<_login->Password << endl;
-				//忽略了判断用户名密码是否正确的过程
-				LoginResult _loginres;
-				send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
-			}break;
-			case CMD_LOGINOUT:
-			{
-				Logout *_logout;
-				recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
-				_logout = (Logout* )szRecv;
-				cout << "收到命令：CMD_LOGOUT" << " 数据长度 = " << header->dataLength << " UserName = " << _logout->userName<< endl;
-				LogoutResult _logoutres;
-				send(_clientSock, (char*)&_logoutres, sizeof(LogoutResult), 0);
-			}break;
-			default:
-			{
-				header->cmd = CMD_ERROR;
-				header->dataLength = 0;
-				send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
+				cout << "ERROR: 接受到无效客户端SOCKET..." << endl;
 			}
-			break;
+			else
+			{
+				cout << "新Client加入：" << "socket = " << _clientSock << " IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
+			}
+			g_clinets.push_back(_clientSock);
 		}
+
+		for (size_t n = 0; n < fdRead.fd_count; n++)
+		{
+			if (processor(fdRead.fd_array[n]) == -1)//processor函数是处理命令的逻辑 recv接到的数据并做出相应的判断和输出日志
+			{
+				auto it = find(g_clinets.begin(), g_clinets.end(), fdRead.fd_array[n]);
+				if(it != g_clinets.end())
+					g_clinets.erase(it);
+			}
+		}	
+	}
+	//	清理socket
+	for (size_t n = 0; n < g_clinets.size(); n++)
+	{
+		closesocket(g_clinets[n]);
 	}
 	//	8. 关闭socket
 	closesocket(_sock);
