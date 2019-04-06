@@ -17,7 +17,9 @@ struct DataPackage
 enum CMD
 {
 	CMD_LOGIN,
+	CMD_LOGIN_RESULT,
 	CMD_LOGINOUT,
+	CMD_LOGOUT_RESULT,
 	CMD_ERROR
 };
 //消息头
@@ -27,31 +29,53 @@ struct DataHeader
 	short cmd;
 };
 
-struct Login
+struct Login: public DataHeader
 {
+	Login()
+	{
+		dataLength = sizeof(Login);
+		cmd = CMD_LOGIN;
+	}
 	char userName[32];
 	char Password[32];
 };
-struct Logout
+struct Logout:public DataHeader
 {
+	Logout()
+	{
+		dataLength = sizeof(Logout);
+		cmd = CMD_LOGINOUT;
+	}
 	char userName[32];
 };
-struct LoginResult
+struct LoginResult :public DataHeader
 {
+	LoginResult()
+	{
+		dataLength = sizeof(LoginResult);
+		cmd = CMD_LOGIN_RESULT;
+		result = 0;
+	}
 	int result;			
 };
-struct LogoutResult
+struct LogoutResult :public DataHeader
 {
+	LogoutResult()
+	{
+		dataLength = sizeof(LogoutResult);
+		cmd = CMD_LOGOUT_RESULT;
+		result = 0;
+	}
 	int result;
 };
+
+
 int main()
 {
 	//启动 windows socket 2.x 环境
 	WORD versionCode = MAKEWORD(2, 2);	//创建一个版本号 
 	WSADATA data;
 	WSAStartup(versionCode, &data);  //启动Socket网络API的函数
-									 ///
-
 
 	//(1) 用Socket API建立简易的TCP服务端
 
@@ -113,28 +137,25 @@ int main()
 			cout << "客户端已退出，任务结束" << endl;
 			break;
 		}
-		cout << "收到命令：" << header.cmd << "数据长度" <<header.dataLength<< endl;
-
+		
 		switch (header.cmd)
 		{
 			case CMD_LOGIN:
 			{
-				Login _login = {};
-				recv(_clientSock, (char*)&_login, sizeof(Login),0);
-				//忽略判断用户名密码是否正确的过程
-				LoginResult _loginres = { 1 };
-				send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
+				Login _login;
+				recv(_clientSock, (char*)&_login + sizeof(DataHeader), sizeof(Login) - sizeof(DataHeader),0);
+				cout << "收到命令：CMD_LOGIN" << " 数据长度 = " << header.dataLength<<" UserName = "<< _login.userName<<" Password = "<<_login.Password << endl;
+				//忽略了判断用户名密码是否正确的过程
+				LoginResult _loginres;
 				send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
-				cout << "登陆用户: " << _login.userName << endl;
 			}break;
 			case CMD_LOGINOUT:
 			{
-				Logout _logout = {};
-				recv(_clientSock, (char*)&_logout, sizeof(Logout), 0);
-				LogoutResult _logoutres = { 1 };
-				send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
+				Logout _logout;
+				recv(_clientSock, (char*)&_logout + sizeof(DataHeader), sizeof(Logout) - sizeof(DataHeader), 0);
+				cout << "收到命令：CMD_LOGOUT" << " 数据长度 = " << header.dataLength << " UserName = " << _logout.userName<< endl;
+				LogoutResult _logoutres;
 				send(_clientSock, (char*)&_logoutres, sizeof(LogoutResult), 0);
-				cout << "登出用户: " << _logout.userName << endl;
 			}break;
 			default:
 				header.cmd = CMD_ERROR;
@@ -142,32 +163,6 @@ int main()
 				send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
 				break;
 		}
-
-
-		//6 处理请求  这里只是简单的字符串判断
-		//if (0 == strcmp(_recvBuf, "getName"))
-		//{
-		//	//	7. 向客户端发送一条数据 send
-		//	char msgBuf[] = "Evila";
-		//	send(_clientSock, msgBuf, strlen(msgBuf) + 1, 0); //+1是为了把\0算进去
-		//}
-		//else if (0 == strcmp(_recvBuf, "getAge"))
-		//{
-		//	//	7. 向客户端发送一条数据 send
-		//	char msgBuf[] = "80";
-		//	send(_clientSock, msgBuf, strlen(msgBuf) + 1, 0); //+1是为了把\0算进去
-		//}
-		//if (0 == strcmp(_recvBuf, "getInfo"))
-		//{
-		//	DataPackage dp = {24,"Evila"};
-		//	send(_clientSock, (const char*)&dp, sizeof(DataPackage), 0); 
-		//}
-		//else
-		//{
-		//	//	7. 向客户端发送一条数据 send
-		//	char msgBuf[] = "ERROR: 输入请求无法解析...";
-		//	send(_clientSock, msgBuf, strlen(msgBuf) + 1, 0); //+1是为了把\0算进去
-		//}
 	}
 	//	8. 关闭socket
 	closesocket(_sock);

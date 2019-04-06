@@ -1,5 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #include<Windows.h>
 #include<WinSock2.h>
 #include<iostream>
@@ -13,10 +14,13 @@ struct DataPackage
 	int age;
 	char name[32];
 };
+
 enum CMD
 {
 	CMD_LOGIN,
+	CMD_LOGIN_RESULT,
 	CMD_LOGINOUT,
+	CMD_LOGOUT_RESULT,
 	CMD_ERROR
 };
 //消息头
@@ -26,21 +30,43 @@ struct DataHeader
 	short cmd;
 };
 
-struct Login
+struct Login : public DataHeader
 {
+	Login()
+	{
+		dataLength = sizeof(Login);
+		cmd = CMD_LOGIN;
+	}
 	char userName[32];
 	char Password[32];
 };
-struct Logout
+struct Logout :public DataHeader
 {
+	Logout()
+	{
+		dataLength = sizeof(Logout);
+		cmd = CMD_LOGINOUT;
+	}
 	char userName[32];
 };
-struct LoginResult
+struct LoginResult :public DataHeader
 {
+	LoginResult()
+	{
+		dataLength = sizeof(LoginResult);
+		cmd = CMD_LOGIN_RESULT;
+		result = 0;
+	}
 	int result;
 };
-struct LogoutResult
+struct LogoutResult :public DataHeader
 {
+	LogoutResult()
+	{
+		dataLength = sizeof(LogoutResult);
+		cmd = CMD_LOGOUT_RESULT;
+		result = 0;
+	}
 	int result;
 };
 
@@ -50,7 +76,6 @@ int main()
 	WORD versionCode = MAKEWORD(2, 2);	//创建一个版本号 
 	WSADATA data;
 	WSAStartup(versionCode, &data);  //启动Socket网络API的函数
-
 
 	//1. 建立一个Socket
 	SOCKET _sock = socket(AF_INET, SOCK_STREAM, 0); //用于网络链接的ipv4的socket
@@ -94,41 +119,27 @@ int main()
 		}
 		else if (0 == strcmp(cmdBuf,"login"))
 		{
-			Login _login = {"Evila","Evila_Password"};
-			DataHeader _header = {};
-			_header.dataLength = sizeof(Login);
-			_header.cmd = CMD_LOGIN;
-			// 5 向服务器发送请求命令 先发送包头
-			send(_sock,(const char*)&_header, sizeof(DataHeader), 0);
-			//再发送包体
+			Login _login;
+			strcpy(_login.userName, "Evila");
+			strcpy(_login.Password, "Evila_Password");
+			// 5 向服务器发送请求命令
 			send(_sock, (const char*)&_login, sizeof(Login), 0);
 
 			//6. 接受服务器信息 recv
-			//先接收 返回数据的包头
-			DataHeader returnHeader = {};
-			LoginResult _lgRes = {};
-			recv(_sock, (char*)&returnHeader, sizeof(DataHeader), 0);
-			//再接收 返回数据的包体
+			LoginResult _lgRes;
 			recv(_sock, (char*)&_lgRes, sizeof(LoginResult), 0);
 			cout<<"LoginResult: " << _lgRes.result << endl;
 		}
 		else if (0 == strcmp(cmdBuf, "logout"))
 		{
-			Logout _logout = {"Evila"};
-			DataHeader _header = {};
-			_header.dataLength = sizeof(Logout);
-			_header.cmd = CMD_LOGINOUT;
-			// 5 向服务器发送请求命令 先发送包头
-			send(_sock, (const char*)&_header, sizeof(DataHeader), 0);
-			//再发送包体
+			Logout _logout;
+			strcpy(_logout.userName, "Evila");
+			// 5 向服务器发送请求命令 
 			send(_sock, (const char*)&_logout, sizeof(Logout), 0);
 
 			//6. 接受服务器信息 recv
-			//先接收 返回数据的包头
-			DataHeader returnHeader = {};
-			LogoutResult _lgRes = {};
-			recv(_sock, (char*)&returnHeader, sizeof(DataHeader), 0);
-			//再接收 返回数据的包体
+			LogoutResult _lgRes;
+			//返回数据
 			recv(_sock, (char*)&_lgRes, sizeof(LogoutResult), 0);
 			cout << "LogoutResult: " << _lgRes.result << endl;
 		}
@@ -136,19 +147,6 @@ int main()
 		{
 			cout << "不支持的命令，请重新输入。" << endl;
 		}
-		//放到循环中 重复接受服务器的返回信息
-		//6. 接受服务器信息 recv
-		//char recvBuf[256] = {};
-		//int nlen = recv(_sock, recvBuf, sizeof(recvBuf), 0); //返回值是接收数据的长度
-		//if (nlen > 0)
-		//{
-		//	DataPackage* pDP = (DataPackage*)recvBuf;
-		//	cout << "接收到数据： 年龄=" << pDP->age << ",名字=" << pDP->name << endl;
-		//}
-		//else
-		//{
-		//	cout << "ERROR: 数据传输失败..." << endl;
-		//}
 	}
 	//7. 关闭 socket
 	closesocket(_sock);
