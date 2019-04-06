@@ -128,40 +128,46 @@ int main()
 	char _recvBuf[128] = {};
 	while (true)
 	{
-		DataHeader header = {};
+
+		char *szRecv = new char[1024];
+
 		//5 首先接收数据包头
-		int nlen = recv(_clientSock, (char*)&header, sizeof(header), 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
+		int nlen = recv(_clientSock, szRecv, sizeof(DataHeader), 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
 		if (nlen <= 0)
 		{
 			//客户端退出
 			cout << "客户端已退出，任务结束" << endl;
 			break;
 		}
-		
-		switch (header.cmd)
+		DataHeader* header = (DataHeader*)szRecv;
+		switch (header->cmd)
 		{
 			case CMD_LOGIN:
 			{
-				Login _login;
-				recv(_clientSock, (char*)&_login + sizeof(DataHeader), sizeof(Login) - sizeof(DataHeader),0);
-				cout << "收到命令：CMD_LOGIN" << " 数据长度 = " << header.dataLength<<" UserName = "<< _login.userName<<" Password = "<<_login.Password << endl;
+				Login* _login;
+				recv(_clientSock, szRecv + sizeof(DataHeader),header->dataLength - sizeof(DataHeader),0);
+				_login = (Login*)szRecv;
+				cout << "收到命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength<<" UserName = "<< _login->userName<<" Password = "<<_login->Password << endl;
 				//忽略了判断用户名密码是否正确的过程
 				LoginResult _loginres;
 				send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
 			}break;
 			case CMD_LOGINOUT:
 			{
-				Logout _logout;
-				recv(_clientSock, (char*)&_logout + sizeof(DataHeader), sizeof(Logout) - sizeof(DataHeader), 0);
-				cout << "收到命令：CMD_LOGOUT" << " 数据长度 = " << header.dataLength << " UserName = " << _logout.userName<< endl;
+				Logout *_logout;
+				recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
+				_logout = (Logout* )szRecv;
+				cout << "收到命令：CMD_LOGOUT" << " 数据长度 = " << header->dataLength << " UserName = " << _logout->userName<< endl;
 				LogoutResult _logoutres;
 				send(_clientSock, (char*)&_logoutres, sizeof(LogoutResult), 0);
 			}break;
 			default:
-				header.cmd = CMD_ERROR;
-				header.dataLength = 0;
+			{
+				header->cmd = CMD_ERROR;
+				header->dataLength = 0;
 				send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
-				break;
+			}
+			break;
 		}
 	}
 	//	8. 关闭socket
