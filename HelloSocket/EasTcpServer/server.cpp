@@ -21,7 +21,8 @@ enum CMD
 	CMD_LOGIN_RESULT,
 	CMD_LOGINOUT,
 	CMD_LOGOUT_RESULT,
-	CMD_ERROR
+	CMD_ERROR,
+	CMD_NEWUSERJOIN,
 };
 //消息头
 struct DataHeader
@@ -69,6 +70,17 @@ struct LogoutResult :public DataHeader
 	}
 	int result;
 };
+struct NewUserJoin :public DataHeader
+{
+	NewUserJoin()
+	{
+		dataLength = sizeof(LogoutResult);
+		cmd = CMD_NEWUSERJOIN;
+		sockId = 0;
+	}
+	int sockId;
+};
+
 
 vector<SOCKET> g_clinets;
 
@@ -80,7 +92,7 @@ int processor(SOCKET _clientSock)
 	if (nlen <= 0)
 	{
 		//客户端退出
-		cout << "客户端已退出，任务结束" << endl;
+		cout << "客户端:Socket = "<<_clientSock<<" 已退出，任务结束" << endl;
 		return -1;
 	}
 	DataHeader* header = (DataHeader*)szRecv;
@@ -91,7 +103,7 @@ int processor(SOCKET _clientSock)
 		Login* _login;
 		recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
 		_login = (Login*)szRecv;
-		cout << "收到命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength << " UserName = " << _login->userName << " Password = " << _login->Password << endl;
+		cout << "收到"<< "socket = " << _clientSock <<" 命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength << " UserName = " << _login->userName << " Password = " << _login->Password << endl;
 		//忽略了判断用户名密码是否正确的过程
 		LoginResult _loginres;
 		send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
@@ -101,7 +113,7 @@ int processor(SOCKET _clientSock)
 		Logout *_logout;
 		recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
 		_logout = (Logout*)szRecv;
-		cout << "收到命令：CMD_LOGOUT" << " 数据长度 = " << header->dataLength << " UserName = " << _logout->userName << endl;
+		cout << "收到"<< "socket = " << _clientSock <<" 命令：CMD_LOGOUT" << " 数据长度 = " << header->dataLength << " UserName = " << _logout->userName << endl;
 		LogoutResult _logoutres;
 		send(_clientSock, (char*)&_logoutres, sizeof(LogoutResult), 0);
 	}break;
@@ -176,7 +188,7 @@ int main()
 		}
 
 		//nfds第一个参数 是一个整数值 是指fd_set集合中所有socket值的范围 不是数量 
-		timeval t = {0,0}; //select查询超时的时间  windows下的计时器 目前没有计算微秒  0表示select函数如果查询没有需要处理，立即返回
+		timeval t = {1,0}; //select查询超时的时间  windows下的计时器 目前没有计算微秒  0表示select函数如果查询没有需要处理，立即返回
 		int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExpect, &t);
 		if (ret < 0)
 		{
@@ -200,6 +212,13 @@ int main()
 			{
 				cout << "新Client加入：" << "socket = " << _clientSock << " IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
 			}
+			for (int n = g_clinets.size() - 1; n >= 0; n--)
+			{	
+				NewUserJoin userJoin;
+				userJoin.cmd = CMD_NEWUSERJOIN;
+				userJoin.sockId = _clientSock;
+				send(g_clinets[n], (const char*)&userJoin, userJoin.dataLength, 0);
+			}
 			g_clinets.push_back(_clientSock);
 		}
 
@@ -212,6 +231,7 @@ int main()
 					g_clinets.erase(it);
 			}
 		}	
+		cout << "服务端socket = "<<_sock<<" 非阻塞运行，处理其它业务" << endl;
 	}
 	//	清理socket
 	for (size_t n = 0; n < g_clinets.size(); n++)

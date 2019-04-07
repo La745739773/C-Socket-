@@ -21,7 +21,8 @@ enum CMD
 	CMD_LOGIN_RESULT,
 	CMD_LOGINOUT,
 	CMD_LOGOUT_RESULT,
-	CMD_ERROR
+	CMD_ERROR,
+	CMD_NEWUSERJOIN,
 };
 //消息头
 struct DataHeader
@@ -69,6 +70,61 @@ struct LogoutResult :public DataHeader
 	}
 	int result;
 };
+struct NewUserJoin :public DataHeader
+{
+	NewUserJoin()
+	{
+		dataLength = sizeof(LogoutResult);
+		cmd = CMD_NEWUSERJOIN;
+		sockId = 0;
+	}
+	int sockId;
+};
+
+
+int processor(SOCKET _sock)
+{
+	char *szRecv = new char[1024];
+	//5 首先接收数据包头
+	int nlen = recv(_sock, szRecv, sizeof(DataHeader), 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
+	if (nlen <= 0)
+	{
+		//客户端退出
+		cout << "客户端:Socket = " << _sock << " 与服务器断开连接，任务结束" << endl;
+		return -1;
+	}
+	DataHeader* header = (DataHeader*)szRecv;
+	switch (header->cmd)
+	{
+		case CMD_NEWUSERJOIN:
+		{
+			NewUserJoin _userJoin;
+			recv(_sock, (char*)&_userJoin + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
+			cout << "收到服务器消息: CMD_NEWUSERJOIN:" << _userJoin.sockId << endl;
+		}break;
+		case CMD_LOGIN_RESULT:
+		{
+			LoginResult _lgRes;
+			recv(_sock, (char*)&_lgRes + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
+			cout << "收到服务器消息: CMD_LOGIN_RESULT:" << _lgRes.result << endl;
+		}break;
+		case CMD_LOGOUT_RESULT:
+		{
+			LogoutResult _lgRes;
+			recv(_sock, (char*)&_lgRes + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
+			cout << "收到服务器消息: CMD_LOGIN_RESULT:" << _lgRes.result << endl;
+		}break;
+		default:
+		{
+			header->cmd = CMD_ERROR;
+			header->dataLength = 0;
+			send(_sock, (char*)&header, sizeof(DataHeader), 0);
+		}
+		break;
+	}
+	return 0;
+}
+
 
 int main()
 {
@@ -108,45 +164,31 @@ int main()
 
 	while (true)
 	{
-		// 3 输入请求命令
-		char cmdBuf[128] = {};
-		cout << "输入命令: ";
-		cin >> cmdBuf;
-		// 4 处理请求
-		if (strcmp(cmdBuf, "exit") == 0)
+		fd_set fdReads;
+		FD_ZERO(&fdReads);
+		FD_SET(_sock, &fdReads);
+		timeval t = { 1,0 };
+		int ret = select(_sock + 1, &fdReads, NULL, NULL, &t);
+		if (ret < 0)
 		{
+			cout << "select任务结束" << endl;
 			break;
 		}
-		else if (0 == strcmp(cmdBuf,"login"))
+		if (FD_ISSET(_sock, &fdReads))	//如果_sock在fdRead里面，表明有需求等待处理
 		{
-			Login _login;
-			strcpy(_login.userName, "Evila");
-			strcpy(_login.Password, "Evila_Password");
-			// 5 向服务器发送请求命令
-			send(_sock, (const char*)&_login, sizeof(Login), 0);
+			FD_CLR(_sock, &fdReads);
 
-			//6. 接受服务器信息 recv
-			LoginResult _lgRes;
-			recv(_sock, (char*)&_lgRes, sizeof(LoginResult), 0);
-			cout<<"LoginResult: " << _lgRes.result << endl;
+			if (processor(_sock) == -1)
+			{
+				cout << "Select任务已结束2" << endl;
+				break;
+			}
 		}
-		else if (0 == strcmp(cmdBuf, "logout"))
-		{
-			Logout _logout;
-			strcpy(_logout.userName, "Evila");
-			// 5 向服务器发送请求命令 
-			send(_sock, (const char*)&_logout, sizeof(Logout), 0);
-
-			//6. 接受服务器信息 recv
-			LogoutResult _lgRes;
-			//返回数据
-			recv(_sock, (char*)&_lgRes, sizeof(LogoutResult), 0);
-			cout << "LogoutResult: " << _lgRes.result << endl;
-		}
-		else
-		{
-			cout << "不支持的命令，请重新输入。" << endl;
-		}
+		Login login;
+		strcpy(login.userName, "Evila");
+		strcpy(login.Password, "Evila_passWord");
+		send(_sock, (const char*)&login, login.dataLength, 0);
+		Sleep(1000);
 	}
 	//7. 关闭 socket
 	closesocket(_sock);
@@ -156,3 +198,48 @@ int main()
 	getchar();
 	return 0;
 }
+
+
+
+
+
+
+//// 3 输入请求命令
+//char cmdBuf[128] = {};
+//cout << "输入命令: ";
+//cin >> cmdBuf;
+//// 4 处理请求
+//if (strcmp(cmdBuf, "exit") == 0)
+//{
+//	break;
+//}
+//else if (0 == strcmp(cmdBuf,"login"))
+//{
+//	Login _login;
+//	strcpy(_login.userName, "Evila");
+//	strcpy(_login.Password, "Evila_Password");
+//	// 5 向服务器发送请求命令
+//	send(_sock, (const char*)&_login, sizeof(Login), 0);
+
+//	//6. 接受服务器信息 recv
+//	LoginResult _lgRes;
+//	recv(_sock, (char*)&_lgRes, sizeof(LoginResult), 0);
+//	cout<<"LoginResult: " << _lgRes.result << endl;
+//}
+//else if (0 == strcmp(cmdBuf, "logout"))
+//{
+//	Logout _logout;
+//	strcpy(_logout.userName, "Evila");
+//	// 5 向服务器发送请求命令 
+//	send(_sock, (const char*)&_logout, sizeof(Logout), 0);
+
+//	//6. 接受服务器信息 recv
+//	LogoutResult _lgRes;
+//	//返回数据
+//	recv(_sock, (char*)&_lgRes, sizeof(LogoutResult), 0);
+//	cout << "LogoutResult: " << _lgRes.result << endl;
+//}
+//else
+//{
+//	cout << "不支持的命令，请重新输入。" << endl;
+//}
