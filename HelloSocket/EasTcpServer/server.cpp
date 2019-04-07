@@ -113,6 +113,7 @@ int processor(SOCKET _clientSock)
 	}
 	break;
 	}
+	return 0;
 }
 
 int main()
@@ -175,7 +176,8 @@ int main()
 		}
 
 		//nfds第一个参数 是一个整数值 是指fd_set集合中所有socket值的范围 不是数量 
-		int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExpect, NULL);
+		timeval t = {0,0}; //select查询超时的时间  windows下的计时器 目前没有计算微秒  0表示select函数如果查询没有需要处理，立即返回
+		int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExpect, &t);
 		if (ret < 0)
 		{
 			cout << "select任务结束" << endl;
