@@ -74,7 +74,7 @@ struct NewUserJoin :public DataHeader
 {
 	NewUserJoin()
 	{
-		dataLength = sizeof(LogoutResult);
+		dataLength = sizeof(NewUserJoin);
 		cmd = CMD_NEWUSERJOIN;
 		sockId = 0;
 	}
@@ -155,6 +155,7 @@ int main()
 	{
 		cout << "SUCCESS: 绑定端口成功..." << endl;
 	}
+	cout << "Socket Id: " << _sock << endl;
 	//	3. 监听网络端口 listen
 
 	if (listen(_sock, 5) == SOCKET_ERROR)//第二个参数 backbag 最大允许连接数量
@@ -231,7 +232,7 @@ int main()
 					g_clinets.erase(it);
 			}
 		}	
-		cout << "服务端socket = "<<_sock<<" 非阻塞运行，处理其它业务" << endl;
+		//cout << "服务端socket = "<<_sock<<" 非阻塞运行，处理其它业务" << endl;
 	}
 	//	清理socket
 	for (size_t n = 0; n < g_clinets.size(); n++)

@@ -5,6 +5,7 @@
 #include<WinSock2.h>
 #include<iostream>
 #include<string>
+#include<thread>	
 using namespace std;
 #pragma comment(lib,"ws2_32.lib") //windows socket2 32的lib库
 
@@ -74,7 +75,7 @@ struct NewUserJoin :public DataHeader
 {
 	NewUserJoin()
 	{
-		dataLength = sizeof(LogoutResult);
+		dataLength = sizeof(NewUserJoin);
 		cmd = CMD_NEWUSERJOIN;
 		sockId = 0;
 	}
@@ -100,19 +101,19 @@ int processor(SOCKET _sock)
 		{
 			NewUserJoin _userJoin;
 			recv(_sock, (char*)&_userJoin + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
-			cout << "收到服务器消息: CMD_NEWUSERJOIN:" << _userJoin.sockId << endl;
+			cout << "收到服务器消息: CMD_NEWUSERJOIN: SocketId = " << _userJoin.sockId << " 数据长度:" << header->dataLength << endl;
 		}break;
 		case CMD_LOGIN_RESULT:
 		{
 			LoginResult _lgRes;
 			recv(_sock, (char*)&_lgRes + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
-			cout << "收到服务器消息: CMD_LOGIN_RESULT:" << _lgRes.result << endl;
+			cout << "收到服务器消息: CMD_LOGIN_RESULT: 登陆状态" << _lgRes.result << endl;
 		}break;
 		case CMD_LOGOUT_RESULT:
 		{
 			LogoutResult _lgRes;
 			recv(_sock, (char*)&_lgRes + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
-			cout << "收到服务器消息: CMD_LOGIN_RESULT:" << _lgRes.result << endl;
+			cout << "收到服务器消息: CMD_LOGIN_RESULT: 登出状态" << _lgRes.result << endl;
 		}break;
 		default:
 		{
@@ -123,6 +124,44 @@ int processor(SOCKET _sock)
 		break;
 	}
 	return 0;
+}
+bool g_bRun = true;
+void cmdThread(SOCKET _sock)
+{
+	while (true)
+	{
+		// 3 输入请求命令
+		char cmdBuf[128] = {};
+		cout << "输入命令: ";
+		cin >> cmdBuf;
+		// 4 处理请求
+		if (strcmp(cmdBuf, "exit") == 0)
+		{
+			cout << "退出cmdThread线程" << endl;
+			g_bRun = false;
+			return;
+		}
+		else if (0 == strcmp(cmdBuf, "login"))
+		{
+			Login _login;
+			strcpy(_login.userName, "Evila");
+			strcpy(_login.Password, "Evila_Password");
+			// 5 向服务器发送请求命令
+			send(_sock, (const char*)&_login, _login.dataLength, 0);
+		}
+		else if (0 == strcmp(cmdBuf, "logout"))
+		{
+			Logout _logout;
+			strcpy(_logout.userName, "Evila");
+			//5 向服务器发送请求命令
+			send(_sock, (const char*)&_logout, _logout.dataLength, 0);
+		}
+		else
+		{
+			cout << "不受支持的命令" << endl;
+		}
+	}
+	return;
 }
 
 
@@ -143,6 +182,7 @@ int main()
 	else
 	{
 		cout << "SUCCESS: SOCKET 建立成功" << endl;
+		cout << "Socket Id: " << _sock << endl;
 	}
 
 	//2. 连接服务器 connect
@@ -161,8 +201,11 @@ int main()
 	{
 		cout << "SUCCESS: SOCKET 连接成功" << endl;
 	}
+	//启动线程
+	std::thread t1(cmdThread,_sock);
+	t1.detach();//与主线程分离
 
-	while (true)
+	while (g_bRun)
 	{
 		fd_set fdReads;
 		FD_ZERO(&fdReads);
@@ -184,11 +227,6 @@ int main()
 				break;
 			}
 		}
-		Login login;
-		strcpy(login.userName, "Evila");
-		strcpy(login.Password, "Evila_passWord");
-		send(_sock, (const char*)&login, login.dataLength, 0);
-		Sleep(1000);
 	}
 	//7. 关闭 socket
 	closesocket(_sock);
