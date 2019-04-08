@@ -98,32 +98,32 @@ int processor(SOCKET _clientSock)
 	DataHeader* header = (DataHeader*)szRecv;
 	switch (header->cmd)
 	{
-	case CMD_LOGIN:
-	{
-		Login* _login;
-		recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
-		_login = (Login*)szRecv;
-		cout << "收到"<< "socket = " << _clientSock <<" 命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength << " UserName = " << _login->userName << " Password = " << _login->Password << endl;
-		//忽略了判断用户名密码是否正确的过程
-		LoginResult _loginres;
-		send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
-	}break;
-	case CMD_LOGINOUT:
-	{
-		Logout *_logout;
-		recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
-		_logout = (Logout*)szRecv;
-		cout << "收到"<< "socket = " << _clientSock <<" 命令：CMD_LOGOUT" << " 数据长度 = " << header->dataLength << " UserName = " << _logout->userName << endl;
-		LogoutResult _logoutres;
-		send(_clientSock, (char*)&_logoutres, sizeof(LogoutResult), 0);
-	}break;
-	default:
-	{
-		header->cmd = CMD_ERROR;
-		header->dataLength = 0;
-		send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
-	}
-	break;
+		case CMD_LOGIN:
+		{
+			Login* _login;
+			recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
+			_login = (Login*)szRecv;
+			cout << "收到"<< "socket = " << _clientSock <<" 命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength << " UserName = " << _login->userName << " Password = " << _login->Password << endl;
+			//忽略了判断用户名密码是否正确的过程
+			LoginResult _loginres;
+			send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
+		}break;
+		case CMD_LOGINOUT:
+		{
+			Logout *_logout;
+			recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
+			_logout = (Logout*)szRecv;
+			cout << "收到"<< "socket = " << _clientSock <<" 命令：CMD_LOGOUT" << " 数据长度 = " << header->dataLength << " UserName = " << _logout->userName << endl;
+			LogoutResult _logoutres;
+			send(_clientSock, (char*)&_logoutres, sizeof(LogoutResult), 0);
+		}break;
+		default:
+		{
+			header->cmd = CMD_ERROR;
+			header->dataLength = 0;
+			send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
+		}
+		break;
 	}
 	return 0;
 }
@@ -155,7 +155,6 @@ int main()
 	{
 		cout << "SUCCESS: 绑定端口成功..." << endl;
 	}
-	cout << "Socket Id: " << _sock << endl;
 	//	3. 监听网络端口 listen
 
 	if (listen(_sock, 5) == SOCKET_ERROR)//第二个参数 backbag 最大允许连接数量
