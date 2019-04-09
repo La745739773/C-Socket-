@@ -47,11 +47,16 @@ int main()
 	client.initSocket();
 	client.ConnectServer("127.0.0.1", 4567);
 	//启动UI线程
-	std::thread t1(cmdThread, &client);
-	t1.detach();
+	//std::thread t1(cmdThread, &client);
+	//t1.detach();
+	Login _login;
+	strcpy(_login.userName, "Evila");
+	strcpy(_login.Password, "Evila_Password");
 	while (client.isRun())
 	{
 		client.onRun();
+		// 5 向服务器发送请求命令
+		int ret = client.SendData(&_login);
 	}
 	client.closeSocket();
 	getchar();

@@ -18,13 +18,48 @@
 #endif
 #include<iostream>
 #include<vector>
+#include<cstring>
 using namespace std;
+#ifndef RECV_BUFF_SIZE
+	#define RECV_BUFF_SIZE 10240
+#endif
 
+class ClientSocket
+{
+public:
+	ClientSocket(SOCKET sock = INVALID_SOCKET)
+	{
+		_sockfd = sock;
+		//_szMsgBuf = new char[RECV_BUFF_SIZE * 10];
+		memset(_szMsgBuf, 0, sizeof(_szMsgBuf));
+		_lastPos = 0;
+	}
+	SOCKET getSock()
+	{
+		return _sockfd;
+	}
+	char* getMsgbuff()
+	{
+		return _szMsgBuf;
+	}
+	int getLstpos()
+	{
+		return _lastPos;
+	}
+	void setLstpos(int temp_pos)
+	{
+		_lastPos = temp_pos;
+	}
+private:
+	SOCKET _sockfd;  //fd_set file desc set
+	char _szMsgBuf[RECV_BUFF_SIZE * 10];
+	int _lastPos;
+};
 class EasyTcpServer
 {
 public:
 	SOCKET _sock;
-	std::vector<SOCKET> g_clinets;
+	std::vector<ClientSocket*> _clients;	//用指针 防止爆栈 因为new的对象是在堆内存 不是栈内存
 	EasyTcpServer()
 	{
 		_sock = INVALID_SOCKET;
@@ -116,28 +151,32 @@ public:
 		//	4. 等待接受客户端连接 accept
 		sockaddr_in _clientAddr = {};
 		int cliendAddrLen = sizeof(_clientAddr);
-		SOCKET _clientSock = INVALID_SOCKET; // 初始化无效的socket 用来存储接入的客户端
-
-		_clientSock = accept(_sock, (sockaddr*)&_clientAddr, &cliendAddrLen);//当客户端接入时 会得到连入客户端的socket地址和长度
-		if (INVALID_SOCKET == _clientSock) //接受到无效接入
+		SOCKET clientSock = INVALID_SOCKET; // 初始化无效的socket 用来存储接入的客户端
+#ifdef _WIN32
+		clientSock = accept(_sock, (sockaddr*)&_clientAddr, &cliendAddrLen);//当客户端接入时 会得到连入客户端的socket地址和长度
+#else
+		clientSock = accept(_sock, (sockaddr*)&_clientAddr, (socklen_t)&cliendAddrLen);//当客户端接入时 会得到连入客户端的socket地址和长度
+#endif
+		if (INVALID_SOCKET == clientSock) //接受到无效接入
 		{
 			cout << "Socket = <" << _sock << " ERROR: 接受到无效客户端SOCKET..." << endl;
 		}
 		else
 		{
-			cout << "新Client加入：" << "socket = " << _clientSock << " IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
-			for (int n = g_clinets.size() - 1; n >= 0; n--)
+			cout << "新Client加入：" << "socket = " << clientSock << " IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
+			for (int n = _clients.size() - 1; n >= 0; n--)
 			{
 				NewUserJoin userJoin;
 				userJoin.cmd = CMD_NEWUSERJOIN;
-				userJoin.sockId = _clientSock;
+				userJoin.sockId = clientSock;
 				SendData2All(&userJoin);
-				//send(g_clinets[n], (const char*)&userJoin, userJoin.dataLength, 0);
+				//send(_clients[n], (const char*)&userJoin, userJoin.dataLength, 0);
 			}
-			g_clinets.push_back(_clientSock);
+			_clients.push_back(new ClientSocket(clientSock));
 		}
-		return _clientSock;
+		return clientSock;
 	}
+	int _nCount = 0;
 	//处理网络消息
 	bool OnRun()
 	{
@@ -156,15 +195,20 @@ public:
 			FD_SET(_sock, &fdRead);  //将服务端的socket放入可读列表，确保accept不阻塞
 			FD_SET(_sock, &fdWrite);
 			FD_SET(_sock, &fdExpect);
-
-			for (size_t n = 0; n < g_clinets.size(); n++)
+			SOCKET maxSock = _sock;
+			for (size_t n = 0; n < _clients.size(); n++)
 			{
-				FD_SET(g_clinets[n], &fdRead);		//所有连入的客户端放入可读列表 保证recv不阻塞
+				FD_SET(_clients[n]->getSock(), &fdRead);		//所有连入的客户端放入可读列表 保证recv不阻塞
+				if (maxSock < _clients[n]->getSock())
+				{
+					maxSock = _clients[n]->getSock();
+				}
 			}
 
 			//nfds第一个参数 是一个整数值 是指fd_set集合中所有socket值的范围 不是数量 
 			timeval t = { 1,0 }; //select查询超时的时间  windows下的计时器 目前没有计算微秒  0表示select函数如果查询没有需要处理，立即返回
-			int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExpect, &t);
+			int ret = select(maxSock, &fdRead, &fdWrite, &fdExpect, &t);
+			//cout << "select result = "<<ret << "count = "<< _nCount++ << endl;
 			if (ret < 0)
 			{
 				cout << "select任务结束" << endl;
@@ -175,13 +219,19 @@ public:
 				FD_CLR(_sock, &fdRead);
 				Accept();
 			}
-			for (size_t n = 0; n < fdRead.fd_count; n++)
+			for (int n = _clients.size() - 1; n >= 0; n--)
 			{
-				if (RecvData(fdRead.fd_array[n]) == -1)//processor函数是处理命令的逻辑 recv接到的数据并做出相应的判断和输出日志
+				if (FD_ISSET(_clients[n]->getSock(), &fdRead))
 				{
-					auto it = find(g_clinets.begin(), g_clinets.end(), fdRead.fd_array[n]);
-					if (it != g_clinets.end())
-						g_clinets.erase(it);
+					if (RecvData(_clients[n]) == -1)
+					{
+						auto it = _clients.begin() + n;
+						if (it != _clients.end())
+						{
+							_clients.erase(it);
+							delete *it;
+						}
+					}
 				}
 			}
 			return true;
@@ -195,20 +245,40 @@ public:
 
 	//select网络模型
 	//接收数据
-	int RecvData(SOCKET _clientSock)
+	char _szRecv[RECV_BUFF_SIZE] = {};
+	int RecvData(ClientSocket* pClient)
 	{
-		char *szRecv = new char[1024];
 		//5 首先接收数据包头
-		int nlen = recv(_clientSock, szRecv, sizeof(DataHeader), 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
+		int nlen = recv(pClient->getSock(), _szRecv, RECV_BUFF_SIZE, 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
 		if (nlen <= 0)
 		{
 			//客户端退出
-			cout << "客户端:Socket = " << _clientSock << " 已退出，任务结束" << endl;
+			cout << "客户端:Socket = " << pClient->getSock() << " 已退出，任务结束" << endl;
 			return -1;
 		}
-		DataHeader* header = (DataHeader*)szRecv;
-		recv(_clientSock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
-		OnNetMsg(_clientSock, header);
+		//内存拷贝 将收取的数据拷贝到消息缓冲区中
+		memcpy(pClient->getMsgbuff() + pClient->getLstpos(), _szRecv, nlen);
+		//消息缓冲区尾部偏移量
+		pClient->setLstpos(pClient->getLstpos() + nlen);
+		while (pClient->getLstpos() >= sizeof(DataHeader))		//当前接收的消息长度大于数据头  循环处理粘包
+		{
+			DataHeader* header = (DataHeader*)pClient->getMsgbuff();
+			if (pClient->getLstpos() >= header->dataLength)		//判断是否少包
+			{
+				//处理剩余未处理缓冲区数据的长度  先计算这个长度 因为下面会进行内存移动操作 因此会改变header中的值
+				int nSize = pClient->getLstpos() - header->dataLength;
+				//处理网络消息
+				OnNetMsg(pClient->getSock(),header);
+				//将剩余消息 前移方便下一次处理
+				memcpy(pClient->getMsgbuff(), pClient->getMsgbuff() + header->dataLength, nSize);
+				pClient->setLstpos(nSize);//位置迁移
+			}
+			else
+			{
+				//剩余数据不够一条完整消息 或少包
+				break;
+			}
+		}
 		return 0;
 	}
 
@@ -236,21 +306,21 @@ public:
 			}break;
 			default:
 			{
-				header->cmd = CMD_ERROR;
-				header->dataLength = 0;
-				send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
+				cout << "收到服务器消息: 未定义消息:" << " 数据长度:" << header->dataLength << endl;
+				//header->cmd = CMD_ERROR;
+				//send(_clientSock, (char*)&header, sizeof(DataHeader), 0);
 			}
 			break;
 		}
 	}
 
 	//发送到指定的socket数据
-	int SendData(SOCKET _clinetSock, DataHeader* header)
+	int SendData(SOCKET _clientsock, DataHeader* header)
 	{
 		if (isRun() && header)
 		{
 			//cout << "发送数据给服务端" << endl;
-			int ret = send(_clinetSock, (const char*)header, header->dataLength, 0);
+			int ret = send(_clientsock, (const char*)header, header->dataLength, 0);
 			return ret;
 		}
 		return SOCKET_ERROR;
@@ -261,13 +331,13 @@ public:
 		if (isRun() && header)
 		{
 			//cout << "发送数据给服务端" << endl;
-			for (int n = g_clinets.size() - 1; n >= 0; n--)
+			for (int n = _clients.size() - 1; n >= 0; n--)
 			{
 				NewUserJoin userJoin;
 				userJoin.cmd = CMD_NEWUSERJOIN;
-				userJoin.sockId = g_clinets[n];
-				//send(g_clinets[n], (const char*)&userJoin, userJoin.dataLength, 0);
-				SendData(g_clinets[n], header);
+				userJoin.sockId = _clients[n]->getSock();
+				//send(_clients[n], (const char*)&userJoin, userJoin.dataLength, 0);
+				SendData(_clients[n]->getSock(), header);
 			}
 		}
 		return;
@@ -282,17 +352,23 @@ public:
 #ifdef _WIN32
 		//清理win sock环境
 		closesocket(_sock);
-		for (int n = g_clinets.size() - 1; n >= 0; n--)
+		for (int n = _clients.size() - 1; n >= 0; n--)
 		{
-			closesocket(g_clinets[n]);
+			closesocket(_clients[n]->getSock());
+			delete _clients[n];
 		}
 		// 清除Windows socket环境
 		WSACleanup();
 #else
-		close(_sock);
+		for (int n = _clients.size() - 1; n >= 0; n--)
+		{
+			close(_clients[n]->getSock());
+			delete _clients[n];
+		}
 #endif
 		cout << "任务结束" << endl;
 		getchar();
+		_clients.clear();
 		_sock = INVALID_SOCKET;
 	}
 };

@@ -108,7 +108,7 @@ public:
 		getchar();
 		_sock = INVALID_SOCKET;
 	}
-
+	int _nCount = 0;
 	//查询select网络消息
 	bool onRun()
 	{
@@ -119,6 +119,7 @@ public:
 			FD_SET(_sock, &fdReads);
 			timeval t = { 1,0 };
 			int ret = select(_sock + 1, &fdReads, NULL, NULL, &t);
+			//cout << "select result = " << ret << "count = " << _nCount++ << endl;
 			if (ret < 0)
 			{
 				cout << "<socket = " << _sock << ">" << " select任务结束" << endl;
@@ -143,20 +144,49 @@ public:
 		return _sock != INVALID_SOCKET;
 	}
 	//接收数据  处理粘包、拆分包
+	//接收缓冲区
+#define RECV_BUFF_SIZE 10240
+	char *_szRecv = new char[RECV_BUFF_SIZE];
+	//消息缓冲区 
+	char *_szMsgBuf = new char[RECV_BUFF_SIZE * 10];
+	int _lastPos = 0;
 	int RecvData()
 	{
-		char *szRecv = new char[1024];
 		//5 首先接收数据包头
-		int nlen = recv(_sock, szRecv, sizeof(DataHeader), 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
+		int nlen = recv(_sock, _szRecv, RECV_BUFF_SIZE, 0); //接受客户端的数据 第一个参数应该是客户端的socket对象
+		//cout << "nlen = " << nlen << endl;
 		if (nlen <= 0)
 		{
 			//客户端退出
 			cout << "客户端:Socket = " << _sock << " 与服务器断开连接，任务结束" << endl;
 			return -1;
 		}
-		DataHeader* header = (DataHeader*)szRecv;
-		recv(_sock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
-		OnNetMsg(header);
+		//内存拷贝 将收取的数据拷贝到消息缓冲区中
+		memcpy(_szMsgBuf + _lastPos, _szRecv, nlen);
+		//消息缓冲区尾部偏移量
+		_lastPos += nlen;
+		while (_lastPos >= sizeof(DataHeader))		//当前接收的消息长度大于数据头  循环处理粘包
+		{
+			DataHeader* header = (DataHeader*)_szMsgBuf;
+			if (_lastPos >= header->dataLength)		//判断是否少包
+			{
+				//处理剩余未处理缓冲区数据的长度
+				int nSize = _lastPos - header->dataLength;
+				//处理网络消息
+				OnNetMsg(header);
+				//将剩余消息 前移方便下一次处理
+				memcpy(_szMsgBuf, _szMsgBuf + header->dataLength, nSize);
+				_lastPos = nSize;//位置迁移
+			}
+			else
+			{
+				//剩余数据不够一条完整消息
+				break;
+			}
+		}
+		//DataHeader* header = (DataHeader*)szRecv;
+		//recv(_sock, szRecv + sizeof(DataHeader), header->dataLength - sizeof(DataHeader), 0);
+		//OnNetMsg(header);
 		return 0;
 	}
 	//响应网络消息
@@ -172,18 +202,20 @@ public:
 			case CMD_LOGIN_RESULT:
 			{
 				LoginResult* _lgRes = (LoginResult*)header;
-				cout << "收到服务器消息: CMD_LOGIN_RESULT: 登陆状态" << _lgRes->result << endl;
+				cout << "收到服务器消息: CMD_LOGIN_RESULT: 登陆状态" << _lgRes->result << " 数据长度:" << header->dataLength << endl;
 			}break;
 			case CMD_LOGOUT_RESULT:
 			{
 				LogoutResult* _lgRes = (LogoutResult*)header;
-				cout << "收到服务器消息: CMD_LOGIN_RESULT: 登出状态" << _lgRes->result << endl;
+				cout << "收到服务器消息: CMD_LOGIN_RESULT: 登出状态" << _lgRes->result <<" 数据长度:"<<header->dataLength<< endl;
 			}break;
+			case CMD_ERROR:
+			{
+				cout << "收到服务器消息: CMD_ERROR:" << " 数据长度:" << header->dataLength << endl;
+			}
 			default:
 			{
-				header->cmd = CMD_ERROR;
-				header->dataLength = 0;
-				send(_sock, (char*)&header, sizeof(DataHeader), 0);
+				cout << "收到服务器消息: 未定义消息:" << " 数据长度:" << header->dataLength << endl;
 			}
 			break;
 		}
