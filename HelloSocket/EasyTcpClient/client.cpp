@@ -53,8 +53,8 @@ int main()
 	{
 		client.onRun();
 	}
-
 	client.closeSocket();
+	getchar();
 	return 0;
 }
 

@@ -73,7 +73,11 @@ public:
 		sockaddr_in _sin = {};
 		_sin.sin_family = AF_INET;
 		_sin.sin_port = htons(port); //host to net short
+#ifdef _WIN32
 		_sin.sin_addr.S_un.S_addr = inet_addr(ip);
+#else
+		_sin.sin_addr.S_addr = inet_addr(ip);
+#endif
 		if (SOCKET_ERROR == connect(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in)))	//SIocket 每一步都可以判断是否成功建立
 		{
 			cout << "ERROR: SOCKET 连接失败" << endl;
