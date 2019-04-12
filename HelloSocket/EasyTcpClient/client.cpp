@@ -1,6 +1,6 @@
 #include"EasyTcpClient.hpp"
 #include<thread>	
-
+bool g_bRun = true; 
 void cmdThread(EasyTcpClient* client)
 {
 	while (true)
@@ -14,6 +14,7 @@ void cmdThread(EasyTcpClient* client)
 		{
 			cout << "退出cmdThread线程" << endl;
 			client->closeSocket();
+			g_bRun = false;
 			return;
 		}
 		else if (0 == strcmp(cmdBuf, "login"))
@@ -43,22 +44,43 @@ void cmdThread(EasyTcpClient* client)
 
 int main()
 {
-	EasyTcpClient client;
-	client.initSocket();
-	client.ConnectServer("127.0.0.1", 4567);
+	const int cCount = FD_SETSIZE - 1;
+	EasyTcpClient* client = new EasyTcpClient[cCount];
+	for (int i = 0; i < cCount; i++)
+	{
+		char* ipAdd = new char[100];
+		ipAdd = "127.0.0.1";
+		unsigned port = 4567;
+		client[i].initSocket();;
+		client[i].ConnectServer(ipAdd, port);
+		cout << "Sock = " << client[i]._sock << "正在连接ip:" << ipAdd << "端口号:" << port << endl;
+	}
+
 	//启动UI线程
 	//std::thread t1(cmdThread, &client);
 	//t1.detach();
 	Login _login;
 	strcpy(_login.userName, "Evila");
 	strcpy(_login.Password, "Evila_Password");
-	while (client.isRun())
+	while (g_bRun)
 	{
-		client.onRun();
+		//client.onRun();
 		// 5 向服务器发送请求命令
-		int ret = client.SendData(&_login);
+		for (int i = 0; i < cCount; i++)
+		{
+			if (client[i].onRun() == false)
+			{
+				delete &client[i];
+			}
+			client[i].SendData(&_login);
+		}
+
 	}
-	client.closeSocket();
+	for (int i = 0; i < cCount; i++)
+	{
+		client[i].closeSocket();
+	}
+	delete client;
 	getchar();
 	return 0;
 }

@@ -109,7 +109,7 @@ public:
 #ifdef _WIN32
 			_sin.sin_addr.S_un.S_addr = inet_addr(ip);
 #else
-			_sin.sin_addr.S_addr = inet_addr(ip);
+			_sin.sin_addr.s_addr = inet_addr(ip);
 #endif
 		}
 		else
@@ -117,7 +117,7 @@ public:
 #ifdef _WIN32
 			_sin.sin_addr.S_un.S_addr = INADDR_ANY;
 #else
-			_sin.sin_addr.S_addr = INADDR_ANY;
+			_sin.sin_addr.s_addr = INADDR_ANY;
 #endif
 		}
 		if (bind(_sock, (const sockaddr*)&_sin, sizeof(sockaddr_in)) == SOCKET_ERROR)  //sockaddr 不利于编码  
@@ -155,7 +155,7 @@ public:
 #ifdef _WIN32
 		clientSock = accept(_sock, (sockaddr*)&_clientAddr, &cliendAddrLen);//当客户端接入时 会得到连入客户端的socket地址和长度
 #else
-		clientSock = accept(_sock, (sockaddr*)&_clientAddr, (socklen_t)&cliendAddrLen);//当客户端接入时 会得到连入客户端的socket地址和长度
+		clientSock = accept(_sock, (sockaddr*)&_clientAddr, (socklen_t*)&cliendAddrLen);//当客户端接入时 会得到连入客户端的socket地址和长度
 #endif
 		if (INVALID_SOCKET == clientSock) //接受到无效接入
 		{
@@ -164,14 +164,10 @@ public:
 		else
 		{
 			cout << "新Client加入：" << "socket = " << clientSock << " IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
-			for (int n = _clients.size() - 1; n >= 0; n--)
-			{
-				NewUserJoin userJoin;
-				userJoin.cmd = CMD_NEWUSERJOIN;
-				userJoin.sockId = clientSock;
-				SendData2All(&userJoin);
-				//send(_clients[n], (const char*)&userJoin, userJoin.dataLength, 0);
-			}
+			NewUserJoin userJoin;
+			userJoin.cmd = CMD_NEWUSERJOIN;
+			userJoin.sockId = clientSock;
+			SendData2All(&userJoin);
 			_clients.push_back(new ClientSocket(clientSock));
 		}
 		return clientSock;
@@ -228,8 +224,8 @@ public:
 						auto it = _clients.begin() + n;
 						if (it != _clients.end())
 						{
-							_clients.erase(it);
-							delete *it;
+							 delete (*it);
+							 _clients.erase(it);
 						}
 					}
 				}
@@ -291,7 +287,7 @@ public:
 			{
 				Login* _login;
 				_login = (Login*)header;
-				cout << "收到" << "socket = " << _clientSock << " 命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength << " UserName = " << _login->userName << " Password = " << _login->Password << endl;
+				//cout << "收到" << "socket = " << _clientSock << " 命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength << " UserName = " << _login->userName << " Password = " << _login->Password << endl;
 				//忽略了判断用户名密码是否正确的过程
 				LoginResult _loginres;
 				send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);

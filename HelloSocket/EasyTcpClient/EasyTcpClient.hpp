@@ -49,7 +49,6 @@ public:
 		if (_sock != INVALID_SOCKET)
 		{
 			cout << "<socket=>"<<_sock<<" 关闭了已有连接并重新建立连接" << endl;
-			closeSocket();
 		}
 		_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //用于网络链接的ipv4的socket TCP连接
 		if (INVALID_SOCKET == _sock)	//SIocket 每一步都可以判断是否成功建立
@@ -67,6 +66,7 @@ public:
 	{
 		if (_sock == INVALID_SOCKET)
 		{
+			closeSocket();
 			initSocket();
 		}
 		//2. 连接服务器 connect
@@ -159,6 +159,7 @@ public:
 		{
 			//客户端退出
 			cout << "客户端:Socket = " << _sock << " 与服务器断开连接，任务结束" << endl;
+			closeSocket();
 			return -1;
 		}
 		//内存拷贝 将收取的数据拷贝到消息缓冲区中
@@ -202,7 +203,7 @@ public:
 			case CMD_LOGIN_RESULT:
 			{
 				LoginResult* _lgRes = (LoginResult*)header;
-				cout << "收到服务器消息: CMD_LOGIN_RESULT: 登陆状态" << _lgRes->result << " 数据长度:" << header->dataLength << endl;
+				//cout << "收到服务器消息: CMD_LOGIN_RESULT: 登陆状态" << _lgRes->result << " 数据长度:" << header->dataLength << endl;
 			}break;
 			case CMD_LOGOUT_RESULT:
 			{
