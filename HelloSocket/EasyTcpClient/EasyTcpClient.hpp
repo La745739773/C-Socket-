@@ -117,7 +117,7 @@ public:
 			fd_set fdReads;
 			FD_ZERO(&fdReads);
 			FD_SET(_sock, &fdReads);
-			timeval t = { 1,0 };
+			timeval t = { 0,0 };
 			int ret = select(_sock + 1, &fdReads, NULL, NULL, &t);
 			//cout << "select result = " << ret << "count = " << _nCount++ << endl;
 			if (ret < 0)

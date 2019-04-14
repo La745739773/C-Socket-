@@ -44,14 +44,17 @@ void cmdThread(EasyTcpClient* client)
 
 int main()
 {
-	const int cCount = FD_SETSIZE - 1;
+	const int cCount = 300;
 	EasyTcpClient* client = new EasyTcpClient[cCount];
+	char* ipAdd = new char[100];
 	for (int i = 0; i < cCount; i++)
 	{
-		char* ipAdd = new char[100];
-		ipAdd = "127.0.0.1";
-		unsigned port = 4567;
-		client[i].initSocket();;
+		client[i].initSocket();
+	}
+	ipAdd = "127.0.0.1";
+	unsigned port = 4567;
+	for (int i = 0; i < cCount; i++)
+	{
 		client[i].ConnectServer(ipAdd, port);
 		cout << "Sock = " << client[i]._sock << "正在连接ip:" << ipAdd << "端口号:" << port << endl;
 	}
@@ -68,11 +71,11 @@ int main()
 		// 5 向服务器发送请求命令
 		for (int i = 0; i < cCount; i++)
 		{
+			client[i].SendData(&_login);
 			if (client[i].onRun() == false)
 			{
 				delete &client[i];
 			}
-			client[i].SendData(&_login);
 		}
 
 	}

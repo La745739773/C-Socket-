@@ -5,6 +5,9 @@
 	#define WIN32_LEAN_AND_MEAN
 	#define _WINSOCK_DEPRECATED_NO_WARNINGS
 	#define _CRT_SECURE_NO_WARNINGS
+	#ifndef FD_SETSIZE
+	#define FD_SETSIZE      1024
+	#endif /* FD_SETSIZE */
 	#include<Windows.h>
 	#include<WinSock2.h>
 	#pragma comment(lib,"ws2_32.lib") //windows socket2 32的lib库
@@ -167,7 +170,7 @@ public:
 			NewUserJoin userJoin;
 			userJoin.cmd = CMD_NEWUSERJOIN;
 			userJoin.sockId = clientSock;
-			SendData2All(&userJoin);
+			//SendData2All(&userJoin);
 			_clients.push_back(new ClientSocket(clientSock));
 		}
 		return clientSock;
@@ -202,7 +205,7 @@ public:
 			}
 
 			//nfds第一个参数 是一个整数值 是指fd_set集合中所有socket值的范围 不是数量 
-			timeval t = { 1,0 }; //select查询超时的时间  windows下的计时器 目前没有计算微秒  0表示select函数如果查询没有需要处理，立即返回
+			timeval t = { 0,0 }; //select查询超时的时间  windows下的计时器 目前没有计算微秒  0表示select函数如果查询没有需要处理，立即返回
 			int ret = select(maxSock, &fdRead, &fdWrite, &fdExpect, &t);
 			//cout << "select result = "<<ret << "count = "<< _nCount++ << endl;
 			if (ret < 0)
