@@ -1,12 +1,13 @@
 #ifndef EasyTcpServer_hpp_
 #define EasyTcpServer_hpp_
 #include "MessageHeadr.hpp"
+#include "CELLTimestamp.hpp"
 #ifdef _WIN32
 	#define WIN32_LEAN_AND_MEAN
 	#define _WINSOCK_DEPRECATED_NO_WARNINGS
 	#define _CRT_SECURE_NO_WARNINGS
 	#ifndef FD_SETSIZE
-	#define FD_SETSIZE      1024
+	#define FD_SETSIZE      10240
 	#endif /* FD_SETSIZE */
 	#include<Windows.h>
 	#include<WinSock2.h>
@@ -63,9 +64,13 @@ class EasyTcpServer
 public:
 	SOCKET _sock;
 	std::vector<ClientSocket*> _clients;	//用指针 防止爆栈 因为new的对象是在堆内存 不是栈内存
+	CELLTimestamp _tTime;
+	int _recvCount;
+public:
 	EasyTcpServer()
 	{
 		_sock = INVALID_SOCKET;
+		_recvCount = 0;
 	}
 	virtual ~EasyTcpServer()
 	{
@@ -284,6 +289,14 @@ public:
 	//响应网络消息
 	virtual void OnNetMsg(SOCKET _clientSock, DataHeader *header)
 	{
+		_recvCount++;
+		auto t1 = _tTime.getElapsedSecond();
+		if (t1 >= 1.0)
+		{
+			cout << "time<" << t1 << ">," << "socket<" << _sock << ">" << ",clients<"<<_clients.size()<<"个>" << ",recvCount<" << _recvCount << ">" << endl;
+			_tTime.update();
+			_recvCount = 0;
+		}
 		switch (header->cmd)
 		{
 			case CMD_LOGIN:

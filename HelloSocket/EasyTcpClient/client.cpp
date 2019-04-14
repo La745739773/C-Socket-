@@ -44,7 +44,7 @@ void cmdThread(EasyTcpClient* client)
 
 int main()
 {
-	const int cCount = 300;
+	const int cCount = 100;
 	EasyTcpClient* client = new EasyTcpClient[cCount];
 	char* ipAdd = new char[100];
 	for (int i = 0; i < cCount; i++)
@@ -56,7 +56,7 @@ int main()
 	for (int i = 0; i < cCount; i++)
 	{
 		client[i].ConnectServer(ipAdd, port);
-		cout << "Sock = " << client[i]._sock << "正在连接ip:" << ipAdd << "端口号:" << port << endl;
+		cout <<"第<"<<i<<">个"<< "Sock = " << client[i]._sock << "正在连接ip:" << ipAdd << "端口号:" << port << endl;
 	}
 
 	//启动UI线程
