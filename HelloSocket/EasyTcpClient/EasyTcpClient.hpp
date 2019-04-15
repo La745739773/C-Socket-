@@ -5,7 +5,7 @@
 	#define _WINSOCK_DEPRECATED_NO_WARNINGS
 	#define _CRT_SECURE_NO_WARNINGS
 	#ifndef FD_SETSIZE
-	#define FD_SETSIZE      10240
+	#define FD_SETSIZE      10006
 	#endif /* FD_SETSIZE */
 	#include<Windows.h>
 	#include<WinSock2.h>

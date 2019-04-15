@@ -1,9 +1,9 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(367,5): warning MSB8004: Intermediate Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Intermediate Directory.
 C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
-  server.cpp
-c:\users\i\desktop\socket和微博爬虫\hellosocketpro\hellosocket\eastcpserver\CELLTimestamp.hpp(24): warning C4244: “return”: 从“double”转换到“__int64”，可能丢失数据
   正在生成代码
-  All 219 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  1 of 418 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    17 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
   EasTcpServer.vcxproj -> C:\Users\i\Desktop\socket和微博爬虫\HelloSocketPro\HelloSocket\../bin/Win32Release\EasTcpServer.exe
   EasTcpServer.vcxproj -> C:\Users\i\Desktop\socket和微博爬虫\HelloSocketPro\HelloSocket\../bin/Win32Release\EasTcpServer.pdb (Full PDB)

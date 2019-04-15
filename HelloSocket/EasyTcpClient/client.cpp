@@ -45,7 +45,7 @@ void cmdThread(/*EasyTcpClient* client*/)
 }
 
 //客户端socket连接数量
-const int cCount = 1000;
+const int cCount = 5000;
 const int tCount = 4;	//线程数量
 //客户端socket数组
 EasyTcpClient* client[cCount];
@@ -70,6 +70,8 @@ void sendThread(int theadId)
 		m_lock.unlock();
 		//cout << "第<" << i << ">个" << "Sock = " << client[i]->_sock << "正在连接ip:" << ipAdd << "端口号:" << port << endl;
 	}
+	std::chrono::milliseconds t(5000);
+	std::this_thread::sleep_for(t);
 	Login _login;
 	strcpy(_login.userName, "Evila");
 	strcpy(_login.Password, "Evila_Password");
@@ -90,7 +92,6 @@ void sendThread(int theadId)
 
 int main()
 {
-
 	//启动UI线程
 	std::thread t1(cmdThread);
 	t1.detach();

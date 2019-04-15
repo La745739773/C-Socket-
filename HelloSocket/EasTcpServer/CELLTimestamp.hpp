@@ -19,7 +19,7 @@ public:
 		return this->getElapsedTimeInMicroSec() * 0.001 * 0.001;
 	}
 	// ºÁÃë
-	long long getElapsedTimeInMilliSec() 
+	double getElapsedTimeInMilliSec()
 	{
 		return this->getElapsedTimeInMicroSec() * 0.001;
 	}
