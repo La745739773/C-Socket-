@@ -171,7 +171,7 @@ public:
 		}
 		else
 		{
-			cout << "新Client加入：" << "socket = " << clientSock << " IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
+			//cout << "新Client加入：" << "socket = " << clientSock << " IP = " << inet_ntoa(_clientAddr.sin_addr) << endl;  //inet_ntoa 将ip地址转换成可读的字符串
 			NewUserJoin userJoin;
 			userJoin.cmd = CMD_NEWUSERJOIN;
 			userJoin.sockId = clientSock;
@@ -306,7 +306,7 @@ public:
 				//cout << "收到" << "socket = " << _clientSock << " 命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength << " UserName = " << _login->userName << " Password = " << _login->Password << endl;
 				//忽略了判断用户名密码是否正确的过程
 				LoginResult _loginres;
-				send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
+				//send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
 			}break;
 			case CMD_LOGINOUT:
 			{

@@ -4,6 +4,9 @@
 	#define WIN32_LEAN_AND_MEAN
 	#define _WINSOCK_DEPRECATED_NO_WARNINGS
 	#define _CRT_SECURE_NO_WARNINGS
+	#ifndef FD_SETSIZE
+	#define FD_SETSIZE      10240
+	#endif /* FD_SETSIZE */
 	#include<Windows.h>
 	#include<WinSock2.h>
 	#pragma comment(lib,"ws2_32.lib") //windows socket2 32的lib库
@@ -53,11 +56,11 @@ public:
 		_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //用于网络链接的ipv4的socket TCP连接
 		if (INVALID_SOCKET == _sock)	//SIocket 每一步都可以判断是否成功建立
 		{
-			cout << "ERROR: SOCKET 建立失败" << endl;
+			//cout << "ERROR: SOCKET 建立失败" << endl;
 		}
 		else
 		{
-			cout << "SUCCESS: SOCKET 建立成功" << endl;
+			//cout << "SUCCESS: SOCKET 建立成功" << endl;
 		}
 		return 0;
 	}
@@ -86,7 +89,7 @@ public:
 		}
 		else
 		{
-			cout << "SUCCESS: SOCKET 连接成功" << endl;
+			//cout << "SUCCESS: SOCKET 连接成功" << endl;
 			return 0;
 		}
 	}
