@@ -110,18 +110,18 @@ public:
 				continue;
 			}
 			fd_set fdRead;
-			fd_set fdWrite;
-			fd_set fdExpect;
+			//fd_set fdWrite;
+			//fd_set fdExpect;
 
 			FD_ZERO(&fdRead);		//清空fd集合的数据
-			FD_ZERO(&fdWrite);
-			FD_ZERO(&fdExpect);
+			//FD_ZERO(&fdWrite);
+			//FD_ZERO(&fdExpect);
 			//这个宏的功能是 将服务端的_sock 放到fdRead这个集合中 
 			//当socket在listen状态，如果已经接收一个连接请求，这个socket会被标记为可读，例如一个accept会确保不会阻塞的完成
 			//对于其他的socket，可读性意味着队列中的数据适合读，当调用recv后不会阻塞。
-			FD_SET(_sock, &fdRead);  //将服务端的socket放入可读列表，确保accept不阻塞
-			FD_SET(_sock, &fdWrite);
-			FD_SET(_sock, &fdExpect);
+			//FD_SET(_sock, &fdRead);  //将服务端的socket放入可读列表，确保accept不阻塞
+			//FD_SET(_sock, &fdWrite);
+			//FD_SET(_sock, &fdExpect);
 			SOCKET maxSock = _clients[0]->getSock();
 			for (size_t n = 0; n < _clients.size(); n++)
 			{
@@ -133,7 +133,7 @@ public:
 			}
 			//nfds第一个参数 是一个整数值 是指fd_set集合中所有socket值的范围 不是数量 
 			timeval t = { 0,10 }; //select查询超时的时间  windows下的计时器 目前没有计算微秒  0表示select函数如果查询没有需要处理，立即返回
-			int ret = select(maxSock, &fdRead, &fdWrite, &fdExpect, &t);
+			int ret = select(maxSock, &fdRead, 0, 0, nullptr);
 			if (ret < 0)
 			{
 				std::cout << "select任务结束" << std::endl;
@@ -450,22 +450,23 @@ public:
 		{
 			time4msg();
 			fd_set fdRead;
-			fd_set fdWrite;
-			fd_set fdExpect;
+			//fd_set fdWrite;
+			//fd_set fdExpect;
 
 			FD_ZERO(&fdRead);		//清空fd集合的数据
-			FD_ZERO(&fdWrite);
-			FD_ZERO(&fdExpect);
+			//FD_ZERO(&fdWrite);
+			//FD_ZERO(&fdExpect);
 			//这个宏的功能是 将服务端的_sock 放到fdRead这个集合中 
 			//当socket在listen状态，如果已经接收一个连接请求，这个socket会被标记为可读，例如一个accept会确保不会阻塞的完成
 			//对于其他的socket，可读性意味着队列中的数据适合读，当调用recv后不会阻塞。
 			FD_SET(_sock, &fdRead);  //将服务端的socket放入可读列表，确保accept不阻塞
-			FD_SET(_sock, &fdWrite);
-			FD_SET(_sock, &fdExpect);
+			//FD_SET(_sock, &fdWrite);
+			//FD_SET(_sock, &fdExpect);
 
 			//nfds第一个参数 是一个整数值 是指fd_set集合中所有socket值的范围 不是数量 
 			timeval t = { 0,10 }; //select查询超时的时间  windows下的计时器 目前没有计算微秒  0表示select函数如果查询没有需要处理，立即返回
-			int ret = select(_sock+1, &fdRead, &fdWrite, &fdExpect, &t);
+			//int ret = select(_sock+1, &fdRead, &fdWrite, &fdExpect, &t);
+			int ret = select(_sock + 1, &fdRead, nullptr, nullptr, &t);
 			//cout << "select result = "<<ret << "count = "<< _nCount++ << endl;
 			if (ret < 0)
 			{

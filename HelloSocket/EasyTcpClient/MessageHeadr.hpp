@@ -35,7 +35,7 @@ struct Login : public DataHeader
 	}
 	char userName[32];
 	char Password[32];
-	char data[32];
+	char data[932];
 };
 struct Logout :public DataHeader
 {

@@ -45,7 +45,7 @@ void cmdThread(/*EasyTcpClient* client*/)
 }
 
 //客户端socket连接数量
-const int cCount = 5000;
+const int cCount = 10000;
 const int tCount = 4;	//线程数量
 //客户端socket数组
 EasyTcpClient* client[cCount];
@@ -66,7 +66,7 @@ void sendThread(int theadId)
 	{
 		client[i]->ConnectServer(ipAdd, port);
 		m_lock.lock();
-		cout << "Connect:" << i << endl;
+		cout <<"thread<"<< theadId <<">,"<< "Connect:" << i << endl;
 		m_lock.unlock();
 		//cout << "第<" << i << ">个" << "Sock = " << client[i]->_sock << "正在连接ip:" << ipAdd << "端口号:" << port << endl;
 	}
