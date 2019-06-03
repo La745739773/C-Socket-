@@ -4,5 +4,5 @@ C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.target
   正在生成代码
   All 1 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   已完成代码的生成
-  HelloSocket.vcxproj -> C:\Users\i\Desktop\socket和微博爬虫\HelloSocketPro\HelloSocket\../bin/Win32Release\HelloSocket.exe
-  HelloSocket.vcxproj -> C:\Users\i\Desktop\socket和微博爬虫\HelloSocketPro\HelloSocket\../bin/Win32Release\HelloSocket.pdb (Full PDB)
+  HelloSocket.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/Win32Release\HelloSocket.exe
+  HelloSocket.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/Win32Release\HelloSocket.pdb (Full PDB)

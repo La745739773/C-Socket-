@@ -45,7 +45,7 @@ void cmdThread(/*EasyTcpClient* client*/)
 }
 
 //客户端socket连接数量
-const int cCount = 10000;
+const int cCount = 1000;
 const int tCount = 4;	//线程数量
 //客户端socket数组
 EasyTcpClient* client[cCount];
@@ -65,28 +65,36 @@ void sendThread(int theadId)
 	for (int i = begin; i < end; i++)
 	{
 		client[i]->ConnectServer(ipAdd, port);
-		m_lock.lock();
-		cout <<"thread<"<< theadId <<">,"<< "Connect:" << i << endl;
-		m_lock.unlock();
+		//m_lock.lock();
+		//cout <<"thread<"<< theadId <<">,"<< "Connect:" << i << endl;
+		//m_lock.unlock();
 		//cout << "第<" << i << ">个" << "Sock = " << client[i]->_sock << "正在连接ip:" << ipAdd << "端口号:" << port << endl;
 	}
+	m_lock.lock();
+	cout << "thread<" << theadId << ">," << "Connect<begin=" << begin << ",end=" << end << ">" << endl;
+	m_lock.unlock();
 	std::chrono::milliseconds t(5000);
 	std::this_thread::sleep_for(t);
-	Login _login;
-	strcpy(_login.userName, "Evila");
-	strcpy(_login.Password, "Evila_Password");
+	Login _login[10];
+	for (int i = 0; i < 1; i++)
+	{
+		strcpy(_login[i].userName, "Evila");
+		strcpy(_login[i].Password, "Evila_Password");
+	}
+
 	while (g_bRun)
 	{
 		// 5 向服务器发送请求命令
 		for (int i = begin; i < end; i++)
 		{
-			client[i]->SendData(&_login);
+			client[i]->SendData(_login);
 			client[i]->onRun();
 		}
 	}
 	for (int i = begin; i < end; i++)
 	{
 		client[i]->closeSocket();
+		delete client[i];
 	}
 }
 
@@ -106,7 +114,7 @@ int main()
 	{
 		Sleep(10);
 	}
-	delete client;
+	delete[] client;
 	getchar();
 	return 0;
 }
