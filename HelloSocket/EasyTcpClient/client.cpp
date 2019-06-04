@@ -45,7 +45,7 @@ void cmdThread(/*EasyTcpClient* client*/)
 }
 
 //客户端socket连接数量
-const int cCount = 1000;
+const int cCount = 4000;
 const int tCount = 4;	//线程数量
 //客户端socket数组
 EasyTcpClient* client[cCount];
@@ -88,7 +88,7 @@ void sendThread(int theadId)
 		for (int i = begin; i < end; i++)
 		{
 			client[i]->SendData(_login);
-			client[i]->onRun();
+			//client[i]->onRun();
 		}
 	}
 	for (int i = begin; i < end; i++)

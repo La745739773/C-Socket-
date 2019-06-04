@@ -29,7 +29,7 @@ int main()
 	Server.initSocket();
 	Server.Bind(nullptr, 4567);
 	Server.Listen(5);
-	Server.StartCellServers(2);
+	Server.StartCellServers(4);
 	std::thread t1(cmdThread);
 	t1.detach();
 	while (g_bRun)

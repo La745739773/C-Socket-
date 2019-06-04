@@ -118,18 +118,24 @@ public:
 	{
 		return _sock != INVALID_SOCKET;
 	}
+
+	fd_set _fdRead_bak; //描述符集合的备份
+	bool _clients_change;	//客户端列表是否有变化
+	SOCKET _maxSock;
 	bool OnRun()
 	{
+		_clients_change = true;
 		while (isRun())
 		{
 			if (_clientBuff.size() > 0)
-			{
+			{	//从缓冲队列取出客户端
 				std::lock_guard<std::mutex> lg(_mutex);
 				for (auto pClient : _clientBuff)
 				{
 					_clients.push_back(pClient);
 				}
 				_clientBuff.clear(); 
+				_clients_change = true;
 			}
 			if (_clients.empty())
 			{
@@ -142,6 +148,24 @@ public:
 			//fd_set fdExpect;
 
 			FD_ZERO(&fdRead);		//清空fd集合的数据
+			if (_clients_change == true)
+			{
+				_clients_change = false;
+				_maxSock = _clients[0]->getSock();
+				for (size_t n = 0; n < _clients.size(); n++)
+				{
+					FD_SET(_clients[n]->getSock(), &fdRead);		//所有连入的客户端放入可读列表 保证recv不阻塞
+					if (_maxSock < _clients[n]->getSock())
+					{
+						_maxSock = _clients[n]->getSock();
+					}
+				}
+				memcpy(&_fdRead_bak, &fdRead, sizeof(fd_set));
+			}
+			else
+			{
+				memcpy(&fdRead, &_fdRead_bak, sizeof(fd_set));	
+			}
 			//FD_ZERO(&fdWrite);
 			//FD_ZERO(&fdExpect);
 			//这个宏的功能是 将服务端的_sock 放到fdRead这个集合中 
@@ -150,18 +174,10 @@ public:
 			//FD_SET(_sock, &fdRead);  //将服务端的socket放入可读列表，确保accept不阻塞
 			//FD_SET(_sock, &fdWrite);
 			//FD_SET(_sock, &fdExpect);
-			SOCKET maxSock = _clients[0]->getSock();
-			for (size_t n = 0; n < _clients.size(); n++)
-			{
-				FD_SET(_clients[n]->getSock(), &fdRead);		//所有连入的客户端放入可读列表 保证recv不阻塞
-				if (maxSock < _clients[n]->getSock())
-				{
-					maxSock = _clients[n]->getSock();
-				}
-			}
+
 			//nfds第一个参数 是一个整数值 是指fd_set集合中所有socket值的范围 不是数量 
 			timeval t = { 0,10 }; //select查询超时的时间  windows下的计时器 目前没有计算微秒  0表示select函数如果查询没有需要处理，立即返回
-			int ret = select(maxSock, &fdRead, 0, 0, nullptr);
+			int ret = select(_maxSock, &fdRead, 0, 0, nullptr);
 			if (ret < 0)
 			{
 				std::cout << "select任务结束" << std::endl;
@@ -176,6 +192,7 @@ public:
 						auto it = _clients.begin() + n;
 						if (it != _clients.end())
 						{
+							_clients_change = true;
 							if(_pNetEvent)
 								_pNetEvent->OnLeave(_clients[n]);
 							delete _clients[n];
@@ -535,7 +552,7 @@ public:
 			//cout << "收到" << "socket = " << _clientSock << " 命令：CMD_LOGIN" << " 数据长度 = " << header->dataLength << " UserName = " << _login->userName << " Password = " << _login->Password << endl;
 			//忽略了判断用户名密码是否正确的过程
 			LoginResult _loginres;
-			pClient->SendData(&_loginres);
+			//pClient->SendData(&_loginres);
 			//send(_clientSock, (char*)&_loginres, sizeof(LoginResult), 0);
 		}break;
 		case CMD_LOGINOUT:
