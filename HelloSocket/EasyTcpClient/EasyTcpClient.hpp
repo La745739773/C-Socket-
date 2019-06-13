@@ -26,11 +26,13 @@ class EasyTcpClient
 public:
 	SOCKET _sock;
 	bool _isConnected;
+	//std::atomic_int _recvCount;
 public:
 	EasyTcpClient()
 	{
 		_sock = INVALID_SOCKET;
 		_isConnected = false;
+		//_recvCount = 0;
 	}
 	//虚析构函数 直接的讲，C++中基类采用virtual虚析构函数是为了防止内存泄漏。
 	//具体地说，如果派生类中申请了内存空间，并在其析构函数中对这些内存空间进行释放。
@@ -86,7 +88,6 @@ public:
 		if (SOCKET_ERROR == connect(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in)))	//SIocket 每一步都可以判断是否成功建立
 		{
 			cout << "ERROR: SOCKET 连接失败" << endl;
-			getchar();
 			_isConnected = false;
 			return SOCKET_ERROR;
 		}
@@ -170,6 +171,7 @@ public:
 			closeSocket();
 			return -1;
 		}
+
 		//内存拷贝 将收取的数据拷贝到消息缓冲区中
 		memcpy(_szMsgBuf + _lastPos, _szRecv, nlen);
 		//消息缓冲区尾部偏移量
@@ -229,13 +231,13 @@ public:
 			break;
 		}
 	}
-	int SendData(DataHeader* header)
+	int SendData(DataHeader* header,int nlen)
 	{
 		int ret = SOCKET_ERROR;
 		if (isRun() && header)
 		{
-			//cout << "发送数据给服务端" << endl;
-			ret = send(_sock, (const char*)header, header->dataLength, 0);
+			//发数据给它自己维护的socket
+			ret = send(_sock, (const char*)header, nlen, 0);
 			if (ret == SOCKET_ERROR)
 			{
 				closeSocket();
@@ -243,6 +245,7 @@ public:
 			}
 			return ret;
 		}
+		return ret;
 	}
 private:
 

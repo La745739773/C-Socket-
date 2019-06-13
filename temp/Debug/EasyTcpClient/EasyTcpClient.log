@@ -1,7 +1,7 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(367,5): warning MSB8004: Intermediate Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Intermediate Directory.
 C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
   client.cpp
-c:\users\i\desktop\socket和微博爬虫\hellosocketpro\hellosocket\easytcpclient\client.cpp(113): warning C4156: 未使用数组形式的“delete”删除数组表达式；数组形式被替代
-c:\users\i\desktop\socket和微博爬虫\hellosocketpro\hellosocket\easytcpclient\client.cpp(113): warning C4154: 删除数组表达式；转换到提供的指针
-  EasyTcpClient.vcxproj -> C:\Users\i\Desktop\socket和微博爬虫\HelloSocketPro\HelloSocket\../bin/Win32Debug\EasyTcpClient.exe
-  EasyTcpClient.vcxproj -> C:\Users\i\Desktop\socket和微博爬虫\HelloSocketPro\HelloSocket\../bin/Win32Debug\EasyTcpClient.pdb (Full PDB)
+d:\c++百万\c-socket-\hellosocket\easytcpclient\easytcpclient.hpp(130): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\easytcpclient\client.cpp(138): warning C4154: 删除数组表达式；转换到提供的指针
+  EasyTcpClient.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/x64Debug\EasyTcpClient.exe
+  EasyTcpClient.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/x64Debug\EasyTcpClient.pdb (Full PDB)

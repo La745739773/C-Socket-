@@ -18,6 +18,9 @@
     <ClCompile Include="server.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Allocator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EasyTcpServer.hpp">
@@ -27,6 +30,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CELLTimestamp.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CELLTask.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryMgr.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Allocator.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

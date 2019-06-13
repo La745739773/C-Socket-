@@ -1,10 +1,14 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(367,5): warning MSB8004: Intermediate Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Intermediate Directory.
 C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
   server.cpp
+d:\c++百万\c-socket-\hellosocket\eastcpserver\EasyTcpServer.hpp(259): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\EasyTcpServer.hpp(265): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\EasyTcpServer.hpp(343): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\EasyTcpServer.hpp(580): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
   正在生成代码
-  0 of 428 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    16 functions had inline decision re-evaluated but remain unchanged
+  49 of 739 functions ( 6.6%) were compiled, the rest were copied from previous compilation.
+    42 functions were new in current compilation
+    31 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
-  EasTcpServer.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/Win32Release\EasTcpServer.exe
-  EasTcpServer.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/Win32Release\EasTcpServer.pdb (Full PDB)
+  EasTcpServer.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/x64Release\EasTcpServer.exe
+  EasTcpServer.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/x64Release\EasTcpServer.pdb (Full PDB)

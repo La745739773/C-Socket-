@@ -1,7 +1,9 @@
 #include"EasyTcpClient.hpp"
+#include"CELLTimestamp.hpp"
 #include<thread>	
 #include<atomic>
 #include<mutex>
+
 atomic_int sum = 0;
 bool g_bRun = true; 
 void cmdThread(/*EasyTcpClient* client*/)
@@ -20,22 +22,6 @@ void cmdThread(/*EasyTcpClient* client*/)
 			g_bRun = false;
 			return;
 		}
-		//else if (0 == strcmp(cmdBuf, "login"))
-		//{
-		//	Login _login;
-		//	strcpy(_login.userName, "Evila");
-		//	strcpy(_login.Password, "Evila_Password");
-		//	// 5 向服务器发送请求命令
-		//	int ret = client->SendData(&_login);
-		//	//send(client->_sock, (const char*)&header, header->dataLength, 0);
-		//}
-		//else if (0 == strcmp(cmdBuf, "logout"))
-		//{
-		//	Logout _logout;
-		//	strcpy(_logout.userName, "Evila");
-		//	//5 向服务器发送请求命令
-		//	client->SendData(&_logout);
-		//}
 		else
 		{
 			cout << "不受支持的命令" << endl;
@@ -45,11 +31,13 @@ void cmdThread(/*EasyTcpClient* client*/)
 }
 
 //客户端socket连接数量
-const int cCount = 4000;
+const int cCount = 10;
 const int tCount = 4;	//线程数量
 //客户端socket数组
 EasyTcpClient* client[cCount];
 mutex m_lock;
+std::atomic_int sendCount = 0;
+std::atomic_int readyCount = 0;	//线程准备数量，利用原子操作实现等待功能
 void sendThread(int theadId)
 {
 	int count = cCount / tCount;
@@ -60,7 +48,11 @@ void sendThread(int theadId)
 	{
 		client[i] = new EasyTcpClient();
 	}
-	ipAdd = "127.0.0.1";
+	//ipAdd = "192.168.1.102"; //笔记本ip
+	//ipAdd = "114.212.120.196";
+
+	ipAdd = "192.168.1.101";   //台式机ip
+	//ipAdd = "127.0.0.1";
 	unsigned port = 4567;
 	for (int i = begin; i < end; i++)
 	{
@@ -70,25 +62,43 @@ void sendThread(int theadId)
 		//m_lock.unlock();
 		//cout << "第<" << i << ">个" << "Sock = " << client[i]->_sock << "正在连接ip:" << ipAdd << "端口号:" << port << endl;
 	}
+	//std::chrono::milliseconds t(5000);
+	//std::this_thread::sleep_for(t);
+	readyCount++;
+	while (readyCount < tCount)	
+	{
+		std::chrono::milliseconds t(10);
+		std::this_thread::sleep_for(t);
+	}
 	m_lock.lock();
 	cout << "thread<" << theadId << ">," << "Connect<begin=" << begin << ",end=" << end << ">" << endl;
 	m_lock.unlock();
-	std::chrono::milliseconds t(5000);
-	std::this_thread::sleep_for(t);
 	Login _login[10];
-	for (int i = 0; i < 1; i++)
+	for (int i = 0; i < 2; i++)
 	{
 		strcpy(_login[i].userName, "Evila");
 		strcpy(_login[i].Password, "Evila_Password");
 	}
-
+	CELLTimestamp tTime;
+	const int nlen = sizeof(_login);
 	while (g_bRun)
 	{
 		// 5 向服务器发送请求命令
 		for (int i = begin; i < end; i++)
 		{
-			client[i]->SendData(_login);
-			//client[i]->onRun();
+			if (SOCKET_ERROR != client[i]->SendData(_login, nlen))
+			{
+				sendCount++;
+			}
+			//if (tTime.getElapsedSecond() >= 1.0)
+			//{
+			//	if (SOCKET_ERROR != client[i]->SendData(_login, nlen))
+			//	{
+			//		sendCount++;
+			//	}
+			//	tTime.update();
+			//}
+			client[i]->onRun();
 		}
 	}
 	for (int i = begin; i < end; i++)
@@ -110,10 +120,21 @@ int main()
 		std::thread t2(sendThread, i + 1);
 		t2.detach();
 	}
+	CELLTimestamp tTime;
 	while (g_bRun)
 	{
-		Sleep(10);
+		auto t = tTime.getElapsedSecond();
+		//cout << "test" << endl;
+		//cout << "thread<" << tCount << ">" << ",clients<" << cCount << ">,time<" << t << ">,send<" << sendCount << ">" << endl;
+		if (t >= 1.0)
+		{
+			cout << "thread<"<<tCount<<">"<<",clients<"<< cCount <<">,time<"<<t<<">,send<"<<sendCount<<">"<< endl;
+			sendCount = 0;
+			tTime.update();
+		}
+		Sleep(1);
 	}
+
 	delete[] client;
 	getchar();
 	return 0;

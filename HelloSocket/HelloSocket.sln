@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EasTcpServer", "EasTcpServe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EasyTcpClient", "EasyTcpClient\EasyTcpClient.vcxproj", "{A3C9073A-1B95-48F8-874A-710205AAD63A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HelloMemory", "HelloMemory\HelloMemory.vcxproj", "{E3FC206E-F1BD-4A08-89AE-DD6A22012394}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +43,14 @@ Global
 		{A3C9073A-1B95-48F8-874A-710205AAD63A}.Release|x64.Build.0 = Release|x64
 		{A3C9073A-1B95-48F8-874A-710205AAD63A}.Release|x86.ActiveCfg = Release|Win32
 		{A3C9073A-1B95-48F8-874A-710205AAD63A}.Release|x86.Build.0 = Release|Win32
+		{E3FC206E-F1BD-4A08-89AE-DD6A22012394}.Debug|x64.ActiveCfg = Debug|x64
+		{E3FC206E-F1BD-4A08-89AE-DD6A22012394}.Debug|x64.Build.0 = Debug|x64
+		{E3FC206E-F1BD-4A08-89AE-DD6A22012394}.Debug|x86.ActiveCfg = Debug|Win32
+		{E3FC206E-F1BD-4A08-89AE-DD6A22012394}.Debug|x86.Build.0 = Debug|Win32
+		{E3FC206E-F1BD-4A08-89AE-DD6A22012394}.Release|x64.ActiveCfg = Release|x64
+		{E3FC206E-F1BD-4A08-89AE-DD6A22012394}.Release|x64.Build.0 = Release|x64
+		{E3FC206E-F1BD-4A08-89AE-DD6A22012394}.Release|x86.ActiveCfg = Release|Win32
+		{E3FC206E-F1BD-4A08-89AE-DD6A22012394}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -158,11 +158,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="server.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Allocator.h" />
+    <ClInclude Include="CELLTask.hpp" />
     <ClInclude Include="CELLTimestamp.hpp" />
     <ClInclude Include="EasyTcpServer.hpp" />
+    <ClInclude Include="MemoryMgr.hpp" />
     <ClInclude Include="MessageHeadr.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

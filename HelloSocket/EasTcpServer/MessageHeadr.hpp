@@ -57,6 +57,7 @@ struct LoginResult :public DataHeader
 	int result;
 	char data[99];
 };
+ 
 struct LogoutResult :public DataHeader
 {
 	LogoutResult()
