@@ -1,10 +1,14 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(367,5): warning MSB8004: Intermediate Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Intermediate Directory.
 C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
   server.cpp
-d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(259): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
-d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(265): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(343): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
-d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(580): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
-d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(284): warning C4715: “CellServer::OnRun”: 不是所有的控件路径都返回值
+d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(250): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(256): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(334): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(571): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\cellobjectpool.hpp(117): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+  d:\c++百万\c-socket-\hellosocket\eastcpserver\cellobjectpool.hpp(97): note: 编译类 模板 成员函数“void CELLObjectPool<ClientSocket,5000>::initObjectPool(void)”时
+  d:\c++百万\c-socket-\hellosocket\eastcpserver\cellobjectpool.hpp(42): note: 参见对正在编译的函数 模板 实例化“void CELLObjectPool<ClientSocket,5000>::initObjectPool(void)”的引用
+  d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(43): note: 参见对正在编译的类 模板 实例化“CELLObjectPool<ClientSocket,5000>”的引用
+d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(275): warning C4715: “CellServer::OnRun”: 不是所有的控件路径都返回值
   EasTcpServer.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/x64Debug\EasTcpServer.exe
   EasTcpServer.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/x64Debug\EasTcpServer.pdb (Full PDB)

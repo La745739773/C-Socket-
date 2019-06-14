@@ -4,7 +4,7 @@
 #include "MessageHeadr.hpp"
 #include "CELLTimestamp.hpp"
 #include "CELLTask.hpp"
-
+#include "CELLObjectPool.hpp"
 
 
 #ifdef _WIN32
@@ -39,7 +39,7 @@
 
 typedef std::shared_ptr<DataHeader> DataHeaderPtr;
 //客户端类   封装了socket  ip地址 地区 白名单等属性 
-class ClientSocket
+class ClientSocket : public ObjectPoolBase<ClientSocket,2000>
 {
 public:
 	ClientSocket(SOCKET sock = INVALID_SOCKET)
@@ -104,14 +104,6 @@ public:
 				break;
 			}
 		}
-
-
-		//if (header)
-		//{
-		//	//cout << "发送数据给自己" << endl;
-		//	res = send(_sockfd, (const char*)header, header->dataLength, 0);
-		//	return res;
-		//}
 		return res;
 	}
 
@@ -122,7 +114,6 @@ private:
 	char _szMsgBuf[RECV_BUFF_SIZE];
 	//消息缓冲区尾部
 	int _lastPos;
-
 	//发送缓冲区
 	char _szSendBuf[RECV_BUFF_SIZE];
 	//发送缓冲区尾部
@@ -533,8 +524,10 @@ public:
 		else
 		{
 			//将新客户端分配给客户数量最少的cellServer
-			
-			addClientToCellServer(std::make_shared<ClientSocket>(clientSock));
+			ClientSocketPtr c(new ClientSocket(clientSock));	
+			//这里没有用 make_shared去创建智能指针对象，因为make_shared会把它管理的对象和智能指针所需要申请的资源共同打包申请，从而不会进入到对象池中
+			//使用这种方式创建智能指针时，创建它管理的对象和创建智能指针是分开做的，因此会进入到对象池，只是new的次数多了
+			addClientToCellServer(c);
 			//获取ip地址的字符串 inet_ntoa(_clientAddr.sin_addr)
 		}
 		return clientSock;

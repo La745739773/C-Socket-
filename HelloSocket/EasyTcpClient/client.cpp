@@ -31,7 +31,7 @@ void cmdThread(/*EasyTcpClient* client*/)
 }
 
 //客户端socket连接数量
-const int cCount = 10;
+const int cCount = 1000;
 const int tCount = 4;	//线程数量
 //客户端socket数组
 EasyTcpClient* client[cCount];
@@ -48,10 +48,10 @@ void sendThread(int theadId)
 	{
 		client[i] = new EasyTcpClient();
 	}
-	//ipAdd = "192.168.1.102"; //笔记本ip
+	ipAdd = "192.168.1.102"; //笔记本ip
 	//ipAdd = "114.212.120.196";
 
-	ipAdd = "192.168.1.101";   //台式机ip
+	//ipAdd = "192.168.1.101";   //台式机ip
 	//ipAdd = "127.0.0.1";
 	unsigned port = 4567;
 	for (int i = begin; i < end; i++)
@@ -74,7 +74,7 @@ void sendThread(int theadId)
 	cout << "thread<" << theadId << ">," << "Connect<begin=" << begin << ",end=" << end << ">" << endl;
 	m_lock.unlock();
 	Login _login[10];
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		strcpy(_login[i].userName, "Evila");
 		strcpy(_login[i].Password, "Evila_Password");
