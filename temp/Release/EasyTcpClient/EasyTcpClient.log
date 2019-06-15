@@ -4,7 +4,7 @@ C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.target
 d:\c++百万\c-socket-\hellosocket\easytcpclient\EasyTcpClient.hpp(130): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
 client.cpp(138): warning C4154: 删除数组表达式；转换到提供的指针
   正在生成代码
-  2 of 230 functions ( 0.9%) were compiled, the rest were copied from previous compilation.
+  3 of 230 functions ( 1.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成

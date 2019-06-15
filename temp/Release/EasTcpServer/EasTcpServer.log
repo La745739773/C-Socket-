@@ -1,14 +1,39 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(367,5): warning MSB8004: Intermediate Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Intermediate Directory.
 C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
   Allocator.cpp
-d:\c++百万\c-socket-\hellosocket\eastcpserver\MemoryMgr.hpp(85): warning C4477: “printf”: 格式字符串“%lx”需要类型“unsigned long”的参数，但可变参数 1 拥有了类型“MemoryBlock *”
-d:\c++百万\c-socket-\hellosocket\eastcpserver\MemoryMgr.hpp(85): warning C4313: “printf”: 格式字符串中的“%x”与“MemoryBlock *”类型的参数 1 冲突
-d:\c++百万\c-socket-\hellosocket\eastcpserver\MemoryMgr.hpp(85): warning C4477: “printf”: 格式字符串“%d”需要类型“int”的参数，但可变参数 3 拥有了类型“std::size_t”
-  d:\c++百万\c-socket-\hellosocket\eastcpserver\MemoryMgr.hpp(85): note: 请考虑在格式字符串中使用“%zd”
-d:\c++百万\c-socket-\hellosocket\eastcpserver\MemoryMgr.hpp(150): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\MemoryMgr.hpp(87): warning C4477: “printf”: 格式字符串“%lx”需要类型“unsigned long”的参数，但可变参数 1 拥有了类型“MemoryBlock *”
+d:\c++百万\c-socket-\hellosocket\eastcpserver\MemoryMgr.hpp(87): warning C4313: “printf”: 格式字符串中的“%x”与“MemoryBlock *”类型的参数 1 冲突
+d:\c++百万\c-socket-\hellosocket\eastcpserver\MemoryMgr.hpp(87): warning C4477: “printf”: 格式字符串“%d”需要类型“int”的参数，但可变参数 3 拥有了类型“std::size_t”
+  d:\c++百万\c-socket-\hellosocket\eastcpserver\MemoryMgr.hpp(87): note: 请考虑在格式字符串中使用“%zd”
+d:\c++百万\c-socket-\hellosocket\eastcpserver\MemoryMgr.hpp(152): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+  server.cpp
+d:\c++百万\c-socket-\hellosocket\eastcpserver\EasyTcpServer.hpp(251): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\EasyTcpServer.hpp(258): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\EasyTcpServer.hpp(353): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\EasyTcpServer.hpp(593): warning C4244: “参数”: 从“SOCKET”转换到“int”，可能丢失数据
+d:\c++百万\c-socket-\hellosocket\eastcpserver\CELLObjectPool.hpp(117): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+  d:\c++百万\c-socket-\hellosocket\eastcpserver\CELLObjectPool.hpp(97): note: 编译类 模板 成员函数“void CELLObjectPool<Type,2000>::initObjectPool(void)”时
+          with
+          [
+              Type=ClientSocket
+          ]
+  d:\c++百万\c-socket-\hellosocket\eastcpserver\CELLObjectPool.hpp(42): note: 参见对正在编译的函数 模板 实例化“void CELLObjectPool<Type,2000>::initObjectPool(void)”的引用
+          with
+          [
+              Type=ClientSocket
+          ]
+  d:\c++百万\c-socket-\hellosocket\eastcpserver\CELLObjectPool.hpp(148): note: 参见对正在编译的类 模板 实例化“CELLObjectPool<Type,2000>”的引用
+          with
+          [
+              Type=ClientSocket
+          ]
+  d:\c++百万\c-socket-\hellosocket\eastcpserver\CELLObjectPool.hpp(147): note: 编译类 模板 成员函数“void ObjectPoolBase<ClientSocket,2000>::operator delete(void *)”时
+  d:\c++百万\c-socket-\hellosocket\eastcpserver\EasyTcpServer.hpp(547): note: 参见对正在编译的函数 模板 实例化“void ObjectPoolBase<ClientSocket,2000>::operator delete(void *)”的引用
+  d:\c++百万\c-socket-\hellosocket\eastcpserver\EasyTcpServer.hpp(44): note: 参见对正在编译的类 模板 实例化“ObjectPoolBase<ClientSocket,2000>”的引用
   正在生成代码
-  9 of 752 functions ( 1.2%) were compiled, the rest were copied from previous compilation.
-    4 functions were new in current compilation
+d:\c++百万\c-socket-\hellosocket\eastcpserver\easytcpserver.hpp(299): warning C4715: “CellServer::OnRun”: 不是所有的控件路径都返回值
+  3 of 752 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
     2 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
   EasTcpServer.vcxproj -> D:\C++百万\C-Socket-\HelloSocket\../bin/x64Release\EasTcpServer.exe

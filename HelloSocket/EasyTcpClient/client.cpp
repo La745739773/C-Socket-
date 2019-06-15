@@ -48,9 +48,9 @@ void sendThread(int theadId)
 	{
 		client[i] = new EasyTcpClient();
 	}
-	ipAdd = "192.168.1.102"; //笔记本ip
+	//ipAdd = "192.168.1.102"; //笔记本ip
 	//ipAdd = "114.212.120.196";
-
+	ipAdd = "192.168.38.128";	//ubuntu
 	//ipAdd = "192.168.1.101";   //台式机ip
 	//ipAdd = "127.0.0.1";
 	unsigned port = 4567;

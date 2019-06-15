@@ -1,6 +1,7 @@
 #ifndef EasyTcpServer_hpp_
 #define EasyTcpServer_hpp_
 #include<memory>
+#include <functional>
 #include "MessageHeadr.hpp"
 #include "CELLTimestamp.hpp"
 #include "CELLTask.hpp"
@@ -253,6 +254,7 @@ public:
 				std::cout << "select任务结束" << std::endl;
 				return false;
 			}
+#ifdef _WIN32
 			for (int n = _clients.size() - 1; n >= 0; n--)
 			{
 				if (FD_ISSET(_clients[n]->getSock(), &fdRead))
@@ -263,7 +265,7 @@ public:
 						if (it != _clients.end())
 						{
 							_clients_change = true;
-							if(_pNetEvent)
+							if (_pNetEvent)
 								_pNetEvent->OnLeave(_clients[n]);
 							//delete _clients[n];
 							_clients.erase(it);
@@ -271,6 +273,28 @@ public:
 					}
 				}
 			}
+#else
+			for (int n = _clients.size() - 1; n >= 0; n--)
+			{
+				if (FD_ISSET(_clients[n]->getSock(), &fdRead))
+				{
+					if (RecvData(_clients[n]) == -1)
+					{
+						auto it = _clients.begin() + n;
+						if (it != _clients.end())
+						{
+							_clients_change = true;
+							if (_pNetEvent)
+								_pNetEvent->OnLeave(_clients[n]);
+							//delete _clients[n];
+							_clients.erase(it);
+						}
+					}
+				}
+			}
+#endif // _WIN32
+
+
 		}
 	}
 
@@ -283,11 +307,6 @@ public:
 		_pNetEvent->OnNetRecv(pClient);
 		if (nlen <= 0)
 		{
-			//客户端退出
-			//std::lock_guard<std::mutex> lg(_mutex);
-			//_mutex.lock();
-			//std::cout << "客户端:Socket = " << pClient->getSock() << " 已退出，任务结束" << std::endl;
-			//_mutex.unlock();
 			return -1;
 		}
 		//内存拷贝 将收取的数据拷贝到消息缓冲区中
@@ -339,10 +358,11 @@ public:
 		// 清除Windows socket环境
 		WSACleanup();
 #else
+		close(_sock);
 		for (int n = _clients.size() - 1; n >= 0; n--)
 		{
 			close(_clients[n]->getSock());
-			delete _clients[n];
+			//delete _clients[n];
 		}
 #endif
 		//std::cout << "任务结束" << std::endl;
@@ -686,11 +706,7 @@ public:
 		// 清除Windows socket环境
 		WSACleanup();
 #else
-		for (int n = _clients.size() - 1; n >= 0; n--)
-		{
-			close(_clients[n]->getSock());
-			delete _clients[n];
-		}
+		close(_sock);
 #endif
 		//std::cout << "任务结束" << std::endl;
 		getchar();
